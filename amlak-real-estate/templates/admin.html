@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة | منصة أملاك العقارية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background: #f1f5f9; color: #0f172a; line-height: 1.6; }
+        header {
+            background: #0f4c81; color: #fff; padding: 15px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn {
+            padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+            font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-block;
+        }
+        .btn-primary { background: #0f4c81; color: #fff; }
+        .btn-success { background: #10b981; color: #fff; }
+        .btn-warning { background: #f59e0b; color: #fff; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-light { background: #fff; color: #0f4c81; }
+
+        .login-box {
+            max-width: 400px; margin: 90px auto; background: #fff; padding: 30px;
+            border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center;
+        }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 5%; }
+        .card { background: #fff; border-radius: 14px; padding: 24px; margin-bottom: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 15px; }
+        .form-control { width: 100%; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.92rem; }
+        .upload-box {
+            border: 2px dashed #0f4c81; background: #f8fafc; padding: 14px; border-radius: 10px;
+            margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+        }
+        #previewImg { max-height: 90px; border-radius: 8px; display: none; border: 1px solid #cbd5e1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; }
+        th { background: #f8fafc; font-weight: 800; }
+        .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+{% if login_mode %}
+<div class="login-box">
+    <h2 style="color:#0f4c81; margin-bottom:8px;">🔐 دخول لوحة الإدارة</h2>
+    <p style="color:#64748b; font-size:0.9rem; margin-bottom:20px;">بيانات التجربة: admin / 123456</p>
+    {% if error %}
+    <p style="color:#ef4444; font-weight:700; margin-bottom:12px;">{{ error }}</p>
+    {% endif %}
+    <form method="POST" style="display:grid; gap:12px;">
+        <input type="text" name="username" class="form-control" placeholder="اسم المستخدم" value="admin" required>
+        <input type="password" name="password" class="form-control" placeholder="كلمة المرور" value="123456" required>
+        <button type="submit" class="btn btn-primary" style="padding:11px;">تسجيل الدخول</button>
+    </form>
+    <a href="/" style="display:block; margin-top:15px; color:#64748b; font-size:0.88rem;">← العودة للموقع الرئيسي</a>
+</div>
+
+{% else %}
+<header>
+    <h2>⚙️ لوحة تحكم منصة أملاك</h2>
+    <div style="display:flex; gap:10px;">
+        <a href="/" class="btn btn-light">معاينة الموقع 🌐</a>
+        <a href="/admin/logout" class="btn btn-danger">خروج</a>
+    </div>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h3>➕ إضافة عقار جديد للمنصة</h3>
+        <form method="POST" action="/admin/add" enctype="multipart/form-data">
+            <div class="form-grid">
+                <input type="text" name="title" class="form-control" placeholder="عنوان العقار (مثال: فيلا مودرن)" required>
+                <select name="purpose" class="form-control">
+                    <option value="للبيع">للبيع</option>
+                    <option value="للإيجار">للإيجار</option>
+                </select>
+                <select name="prop_type" class="form-control">
+                    <option value="فيلا">فيلا</option>
+                    <option value="شقة">شقة</option>
+                    <option value="دوبلكس">دوبلكس</option>
+                    <option value="مكتب إداري">مكتب إداري</option>
+                </select>
+                <input type="text" name="city" class="form-control" placeholder="المدينة والحي" required>
+                <input type="number" name="price" class="form-control" placeholder="السعر" required>
+                <input type="number" name="area" class="form-control" placeholder="المساحة (م²)" required>
+                <input type="number" name="bedrooms" class="form-control" placeholder="عدد الغرف" required>
+                <input type="number" name="bathrooms" class="form-control" placeholder="عدد الحمامات" required>
+                <input type="text" name="badge" class="form-control" placeholder="الشارة (مميز / حصري / جديد)" value="جديد">
+            </div>
+
+            <div class="upload-box">
+                <div>
+                    <label style="font-weight:700; color:#0f4c81; display:block; margin-bottom:6px;">📸 اختر صورة العقار من جهازك مباشرة:</label>
+                    <input type="file" name="image_file" accept="image/*" onchange="previewFile(this)">
+                </div>
+                <img id="previewImg" alt="معاينة الصورة">
+            </div>
+
+            <textarea name="description" class="form-control" rows="2" placeholder="وصف تفصيلي للعقار..." style="margin-top:12px;" required></textarea>
+            <button type="submit" class="btn btn-success" style="margin-top:14px; padding:10px 24px;">نشر العقار الآن ✅</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>🏢 إدارة العقارات المدرجة ({{ properties|length }})</h3>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>العقار</th>
+                        <th>المدينة</th>
+                        <th>السعر</th>
+                        <th>الحالة</th>
+                        <th>التحكم</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in properties %}
+                    <tr>
+                        <td><strong>{{ p.title }}</strong><br><small style="color:#64748b;">{{ p.purpose }} - {{ p.prop_type }}</small></td>
+                        <td>{{ p.city }}</td>
+                        <td>{{ "{:,}".format(p.price) }}</td>
+                        <td><strong>{{ p.status }}</strong></td>
+                        <td class="actions">
+                            <form method="POST" action="/admin/status/{{ p.id }}/متاح"><button class="btn btn-success">متاح</button></form>
+                            <form method="POST" action="/admin/status/{{ p.id }}/مباع"><button class="btn btn-warning">مباع</button></form>
+                            <form method="POST" action="/admin/delete/{{ p.id }}"><button class="btn btn-danger">حذف</button></form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📅 طلبات المعاينة الواردة من العملاء ({{ inquiries|length }})</h3>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>اسم العميل</th>
+                        <th>رقم الجوال</th>
+                        <th>العقار المطلوب</th>
+                        <th>موعد المعاينة</th>
+                        <th>ملاحظات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in inquiries %}
+                    <tr>
+                        <td><strong>{{ i.client_name }}</strong></td>
+                        <td>{{ i.client_phone }}</td>
+                        <td>{{ i.property_title }}</td>
+                        <td>{{ i.visit_date }}</td>
+                        <td>{{ i.notes or '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align:center; color:#64748b;">لا توجد طلبات معاينة حتى الآن.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewFile(input) {
+        const preview = document.getElementById('previewImg');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endif %}
+
+</body>
+</html>
