@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة أملاك العقارية | وجهتك للعقارات الفاخرة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --primary: #0f4c81;
+            --primary-hover: #0a365c;
+            --accent: #d97706;
+            --border: #e2e8f0;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06);
+        }
+        [data-theme="dark"] {
+            --bg: #0b1120;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --accent: #f59e0b;
+            --border: #334155;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg); color: var(--text); transition: 0.3s; line-height: 1.6; }
+
+        header {
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100; padding: 15px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .nav-actions { display: flex; gap: 12px; align-items: center; }
+        .btn {
+            padding: 9px 18px; border-radius: 10px; border: none; cursor: pointer;
+            font-weight: 700; font-size: 0.9rem; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        [data-theme="dark"] .btn-primary { color: #0f172a; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+        .hero {
+            background: linear-gradient(135deg, rgba(15, 76, 129, 0.92), rgba(11, 17, 32, 0.88)),
+                        url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80') center/cover;
+            color: #fff; padding: 70px 5% 90px; text-align: center;
+        }
+        .hero h1 { font-size: 2.3rem; font-weight: 800; margin-bottom: 12px; }
+        .hero p { font-size: 1.05rem; color: #cbd5e1; max-width: 650px; margin: 0 auto 25px; }
+        .stats-bar { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; }
+        .stat-item { background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); padding: 10px 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
+        .stat-item strong { color: #fbbf24; font-size: 1.3rem; display: block; }
+
+        .search-box {
+            max-width: 1100px; margin: -45px auto 40px; background: var(--surface);
+            padding: 22px; border-radius: 16px; box-shadow: var(--shadow);
+            border: 1px solid var(--border); display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;
+        }
+        .form-control {
+            width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--border);
+            background: var(--bg); color: var(--text); font-size: 0.95rem; outline: none;
+        }
+        .form-control:focus { border-color: var(--primary); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 5% 60px; }
+        .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+        .card {
+            background: var(--surface); border-radius: 16px; overflow: hidden;
+            border: 1px solid var(--border); box-shadow: var(--shadow); transition: 0.3s; display: flex; flex-direction: column;
+        }
+        .card:hover { transform: translateY(-6px); }
+        .card-img { position: relative; height: 220px; overflow: hidden; }
+        .card-img img { width: 100%; height: 100%; object-fit: cover; transition: 0.4s; }
+        .card:hover .card-img img { transform: scale(1.06); }
+        .badge {
+            position: absolute; top: 14px; right: 14px; background: var(--accent); color: #fff;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+        }
+        .status-tag {
+            position: absolute; top: 14px; left: 14px; padding: 4px 12px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 700; color: #fff;
+        }
+        .status-available { background: #10b981; }
+        .status-sold { background: #ef4444; }
+        .card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-meta { color: var(--primary); font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; }
+        .card-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 10px; }
+        .card-specs {
+            display: flex; gap: 15px; padding: 12px 0; border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border); margin: 12px 0; font-size: 0.88rem; color: var(--text-muted);
+        }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .price { font-size: 1.2rem; font-weight: 800; color: var(--accent); }
+
+        .calculator-section {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+            padding: 30px; margin-top: 60px; box-shadow: var(--shadow);
+        }
+        .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-top: 20px; }
+        .calc-result {
+            background: var(--bg); padding: 20px; border-radius: 14px; text-align: center;
+            border: 1.5px dashed var(--primary); margin-top: 20px;
+        }
+
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+            z-index: 999; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: var(--surface); max-width: 550px; width: 100%; border-radius: 18px;
+            padding: 25px; max-height: 90vh; overflow-y: auto; position: relative;
+        }
+        .close-btn { position: absolute; top: 18px; left: 20px; font-size: 1.5rem; cursor: pointer; background: none; border: none; color: var(--text); }
+
+        .alert-success { background: #10b981; color: #fff; text-align: center; padding: 12px; font-weight: 700; }
+
+        footer {
+            background: var(--surface); border-top: 1px solid var(--border);
+            padding: 30px 5%; text-align: center; color: var(--text-muted); font-size: 0.9rem;
+        }
+        footer strong { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+{% if request.args.get('booked') %}
+<div class="alert-success">✅ تم استلام طلب المعاينة بنجاح! سيتواصل معك مستشارنا العقاري في أقرب وقت.</div>
+{% endif %}
+
+<header>
+    <a href="/" class="logo">🏢 منصة أملاك العقارية</a>
+    <div class="nav-actions">
+        <button class="btn btn-outline" onclick="toggleTheme()" id="themeBtn">🌙 الوضع الليلي</button>
+        <a href="/admin" class="btn btn-primary">لوحة الإدارة ⚙️</a>
+    </div>
+</header>
+
+<section class="hero">
+    <h1>اكتشف منزل أحلامك أو استثمارك العقاري القادم</h1>
+    <p>نخبة من الفلل الفاخرة، الشقق العصرية، والمقرات الإدارية في أرقى الأحياء مع إمكانية حجز المعاينة الفورية.</p>
+    <div class="stats-bar">
+        <div class="stat-item"><strong>{{ total_props }}</strong>عقار مدرج</div>
+        <div class="stat-item"><strong>{{ available_props }}</strong>متاح حالياً</div>
+        <div class="stat-item"><strong>100%</strong>موثوقية ومطابقة</div>
+    </div>
+</section>
+
+<div class="container">
+    <form class="search-box" method="GET" action="/" id="filterForm"
+          data-purpose="{{ filters.purpose }}" data-type="{{ filters.prop_type }}">
+        <select name="purpose" id="purposeSelect" class="form-control">
+            <option value="">الغرض (الكل)</option>
+            <option value="للبيع">للبيع</option>
+            <option value="للإيجار">للإيجار</option>
+        </select>
+        <select name="prop_type" id="typeSelect" class="form-control">
+            <option value="">نوع العقار (الكل)</option>
+            <option value="فيلا">فيلا</option>
+            <option value="شقة">شقة</option>
+            <option value="دوبلكس">دوبلكس</option>
+            <option value="مكتب إداري">مكتب إداري</option>
+        </select>
+        <input type="text" name="city" class="form-control" placeholder="المدينة أو الحي..." value="{{ filters.city }}">
+        <input type="number" name="max_price" class="form-control" placeholder="أقصى ميزانية..." value="{{ filters.max_price }}">
+        <button type="submit" class="btn btn-primary" style="justify-content:center;">🔍 بحث متقدم</button>
+    </form>
+
+    <div class="section-head">
+        <h2>أحدث العقارات المميزة ({{ properties|length }})</h2>
+        {% if filters.purpose or filters.prop_type or filters.city or filters.max_price %}
+        <a href="/" class="btn btn-outline">إعادة ضبط الفلاتر ✖</a>
+        {% endif %}
+    </div>
+
+    <div class="grid">
+        {% for p in properties %}
+        <div class="card">
+            <div class="card-img">
+                <img src="{{ p.image_url }}" alt="{{ p.title }}">
+                <span class="badge">{{ p.badge }}</span>
+                <span class="status-tag {% if p.status == 'متاح' %}status-available{% else %}status-sold{% endif %}">{{ p.status }}</span>
+            </div>
+            <div class="card-body">
+                <div>
+                    <div class="card-meta">{{ p.purpose }} • {{ p.prop_type }} • 📍 {{ p.city }}</div>
+                    <h3 class="card-title">{{ p.title }}</h3>
+                    <div class="card-specs">
+                        <span>📐 {{ p.area }} م²</span>
+                        <span>🛏️ {{ p.bedrooms }} غرف</span>
+                        <span>🚿 {{ p.bathrooms }} حمام</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="price">{{ "{:,}".format(p.price) }}</div>
+                    <button class="btn btn-primary"
+                        data-title="{{ p.title }}"
+                        data-city="{{ p.city }}"
+                        data-price="{{ '{:,}'.format(p.price) }}"
+                        data-desc="{{ p.description }}"
+                        data-status="{{ p.status }}"
+                        onclick="openModalFromBtn(this)">
+                        التفاصيل والمعاينة
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">لا توجد عقارات مطابقة لخيارات البحث الحالية.</p>
+        {% endfor %}
+    </div>
+
+    <section class="calculator-section">
+        <h2>🧮 حاسبة التمويل العقاري التفاعلية</h2>
+        <p style="color:var(--text-muted); font-size:0.95rem;">احسب قسطك الشهري التقديري بسهولة قبل اتخاذ قرار الشراء.</p>
+        <div class="calc-grid">
+            <div>
+                <label>سعر العقار الإجمالي</label>
+                <input type="number" id="calcPrice" class="form-control" value="4500000" oninput="calcMortgage()">
+            </div>
+            <div>
+                <label>الدفعة المقدمة (%)</label>
+                <input type="number" id="calcDown" class="form-control" value="20" oninput="calcMortgage()">
+            </div>
+            <div>
+                <label>مدة التمويل (سنوات)</label>
+                <input type="number" id="calcYears" class="form-control" value="15" oninput="calcMortgage()">
+            </div>
+            <div>
+                <label>نسبة المرابحة السنوية (%)</label>
+                <input type="number" id="calcRate" class="form-control" value="4.5" step="0.1" oninput="calcMortgage()">
+            </div>
+        </div>
+        <div class="calc-result">
+            <span>القسط الشهري التقديري:</span>
+            <h3 id="monthlyResult" style="font-size:1.8rem; color:var(--primary); margin-top:5px;">27,540</h3>
+        </div>
+    </section>
+</div>
+
+<div class="modal" id="propModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()">✖</button>
+        <h3 id="mTitle" style="margin-bottom:8px; padding-left:25px;"></h3>
+        <p id="mMeta" style="color:var(--primary); font-weight:700; margin-bottom:12px;"></p>
+        <p id="mDesc" style="color:var(--text-muted); font-size:0.95rem; margin-bottom:20px; background:var(--bg); padding:12px; border-radius:10px;"></p>
+
+        <h4 style="margin-bottom:12px;">📅 احجز موعد معاينة لهذا العقار</h4>
+        <form method="POST" action="/inquire" style="display:grid; gap:12px;">
+            <input type="hidden" name="property_title" id="mInputTitle">
+            <input type="text" name="client_name" class="form-control" placeholder="الاسم الكامل" required>
+            <input type="tel" name="client_phone" class="form-control" placeholder="رقم الجوال / واتساب" required>
+            <input type="date" name="visit_date" class="form-control" required>
+            <textarea name="notes" class="form-control" rows="2" placeholder="ملاحظات إضافية (اختياري)"></textarea>
+            <button type="submit" class="btn btn-primary" style="justify-content:center;">تأكيد طلب المعاينة ✅</button>
+        </form>
+    </div>
+</div>
+
+<footer>
+    <p>جميع الحقوق محفوظة © 2026 <strong>منصة أملاك العقارية</strong></p>
+    <p style="margin-top:6px;">تصميم وتطوير: <strong>م. عبدالعزيز أمير (ENG Zizo Ameer)</strong></p>
+</footer>
+
+<script>
+    // ضبط قيم الفلاتر المختارة تلقائياً
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm.dataset.purpose) {
+        document.getElementById('purposeSelect').value = filterForm.dataset.purpose;
+    }
+    if (filterForm.dataset.type) {
+        document.getElementById('typeSelect').value = filterForm.dataset.type;
+    }
+
+    function toggleTheme() {
+        const html = document.documentElement;
+        const btn = document.getElementById('themeBtn');
+        if (html.getAttribute('data-theme') === 'dark') {
+            html.removeAttribute('data-theme');
+            btn.textContent = '🌙 الوضع الليلي';
+        } else {
+            html.setAttribute('data-theme', 'dark');
+            btn.textContent = '☀️ الوضع النهاري';
+        }
+    }
+
+    function openModalFromBtn(btn) {
+        const title = btn.getAttribute('data-title');
+        const city = btn.getAttribute('data-city');
+        const price = btn.getAttribute('data-price');
+        const desc = btn.getAttribute('data-desc');
+        const status = btn.getAttribute('data-status');
+
+        document.getElementById('mTitle').textContent = title;
+        document.getElementById('mMeta').textContent = `📍 ${city} | السعر: ${price} | الحالة: ${status}`;
+        document.getElementById('mDesc').textContent = desc;
+        document.getElementById('mInputTitle').value = title;
+        document.getElementById('propModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('propModal').classList.remove('active');
+    }
+
+    function calcMortgage() {
+        const price = parseFloat(document.getElementById('calcPrice').value) || 0;
+        const downPct = parseFloat(document.getElementById('calcDown').value) || 0;
+        const years = parseFloat(document.getElementById('calcYears').value) || 1;
+        const rate = parseFloat(document.getElementById('calcRate').value) || 0;
+
+        const loan = price * (1 - downPct / 100);
+        const monthlyRate = (rate / 100) / 12;
+        const months = years * 12;
+
+        let monthly = 0;
+        if (monthlyRate > 0) {
+            monthly = (loan * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
+        } else {
+            monthly = loan / months;
+        }
+        document.getElementById('monthlyResult').textContent = Math.round(monthly).toLocaleString();
+    }
+    calcMortgage();
+</script>
+</body>
+</html>
