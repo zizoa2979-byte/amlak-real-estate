@@ -30,7 +30,6 @@ ADMIN_USER = os.environ.get('ADMIN_USER', 'admin').strip()
 ADMIN_PASS = os.environ.get('ADMIN_PASS', 'Zizo@Amlak2026').strip()
 WHATSAPP_NUMBER = "201025090134"
 
-# الفترتان اليوميتين للمعاينة (بينهما 3 ساعات راحة من 12 ظهراً إلى 3 عصراً)
 VIEWING_SLOTS = [
     "الفترة الأولى: من 10:00 صباحاً إلى 12:00 ظهراً",
     "الفترة الثانية: من 3:00 عصراً إلى 5:00 مساءً"
@@ -290,8 +289,6 @@ def index():
     )
 
 
-# ==================== API FOR CHECKING DAILY SLOTS ====================
-
 @app.route('/api/booked-slots')
 def api_booked_slots():
     date_str = request.args.get('date', '').strip()
@@ -315,8 +312,6 @@ def api_booked_slots():
     is_full = len(booked_slots) >= len(VIEWING_SLOTS) or len(rows) >= 2
     return jsonify({'booked_slots': booked_slots, 'is_full': is_full})
 
-
-# ==================== CLIENT AUTH & ACCOUNT ====================
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -442,8 +437,6 @@ def my_account():
     )
 
 
-# ==================== BOOKING / INQUIRIES (MAX 2 SLOTS PER DAY) ====================
-
 @app.route('/book-viewing', methods=['POST'])
 def book_viewing():
     prop_id = request.form.get('property_id')
@@ -469,7 +462,6 @@ def book_viewing():
         flash("عذراً، هذا العقار تم بيعه بالفعل.", "danger")
         return redirect(url_for('index'))
 
-    # التحقق من أن اليوم لا يتعدى عميلين وأن الفترة المختارة غير محجوزة
     day_bookings = db.fetchall(
         "SELECT preferred_date FROM inquiries WHERE preferred_date LIKE ? AND status != 'مرفوض'",
         (f"{booking_day}%",)
@@ -525,8 +517,6 @@ def book_viewing():
     flash(f"تم تسجيل طلبك بنجاح لموعد ({preferred_date})! ترتيبك في الأولوية هو #{priority_num}.", "success")
     return redirect(url_for('index', booked='1'))
 
-
-# ==================== ADMIN PANEL (SECURED + LIVE AUTO REFRESH) ====================
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -738,8 +728,6 @@ def inquiry_action(inq_id):
     db.close()
     return redirect(url_for('admin_dashboard'))
 
-
-# ==================== EXCEL / CSV BACKUP EXPORTS ====================
 
 @app.route('/admin/export/<string:target>')
 @admin_required
