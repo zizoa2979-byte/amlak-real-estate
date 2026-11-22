@@ -3,131 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الإدارة | منصة أملاك العقارية</title>
+    <title>لوحة الإدارة المحمية | منصة أملاك</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background: #f1f5f9; color: #0f172a; line-height: 1.6; }
-        header {
-            background: #0f4c81; color: #fff; padding: 15px 5%;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .btn {
-            padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
-            font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-block;
-        }
-        .btn-primary { background: #0f4c81; color: #fff; }
-        .btn-success { background: #10b981; color: #fff; }
-        .btn-warning { background: #f59e0b; color: #fff; }
-        .btn-danger { background: #ef4444; color: #fff; }
-        .btn-light { background: #fff; color: #0f4c81; }
+        body { background: #f1f5f9; color: #1e293b; }
+        .navbar { background: #0f2942; color: #fff; padding: 14px 5%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .navbar a { color: #fff; text-decoration: none; font-weight: 700; }
+        .container { max-width: 1280px; margin: 24px auto; padding: 0 20px 60px; }
+        .card { background: #fff; border-radius: 14px; padding: 22px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        h2, h3 { color: #0f2942; margin-bottom: 14px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
+        .stat-box { background: #fff; padding: 16px; border-radius: 12px; border-right: 5px solid #0f2942; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .stat-box span { display: block; font-size: 0.85rem; color: #64748b; font-weight: 700; }
+        .stat-box strong { font-size: 1.6rem; color: #0f2942; }
 
-        .login-box {
-            max-width: 400px; margin: 90px auto; background: #fff; padding: 30px;
-            border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center;
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;
         }
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 5%; }
-        .card { background: #fff; border-radius: 14px; padding: 24px; margin-bottom: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 15px; }
-        .form-control { width: 100%; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.92rem; }
-        .upload-box {
-            border: 2px dashed #0f4c81; background: #f8fafc; padding: 14px; border-radius: 10px;
-            margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-        }
-        #previewImg { max-height: 90px; border-radius: 8px; display: none; border: 1px solid #cbd5e1; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
-        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; }
-        th { background: #f8fafc; font-weight: 800; }
-        .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+        .btn-primary { background: #0f2942; color: #fff; }
+        .btn-accent { background: #d97706; color: #fff; }
+        .btn-success { background: #059669; color: #fff; }
+        .btn-danger { background: #dc2626; color: #fff; }
+        .btn-excel { background: #15803d; color: #fff; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; vertical-align: middle; }
+        th { background: #f8fafc; color: #0f2942; }
+        .login-box { max-width: 400px; margin: 80px auto; background: #fff; padding: 30px; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
     </style>
 </head>
 <body>
 
 {% if login_mode %}
 <div class="login-box">
-    <h2 style="color:#0f4c81; margin-bottom:8px;">🔐 دخول لوحة الإدارة</h2>
-    <p style="color:#64748b; font-size:0.9rem; margin-bottom:20px;">بيانات التجربة: admin / 123456</p>
+    <h2 style="text-align:center;"><i class="fa-solid fa-lock"></i> دخول الإدارة المحمي</h2>
+    <p style="text-align:center; font-size:0.85rem; color:#64748b; margin-bottom:18px;">هذه المنطقة مخصصة لمسؤول النظام فقط</p>
     {% if error %}
-    <p style="color:#ef4444; font-weight:700; margin-bottom:12px;">{{ error }}</p>
+        <div style="background:#fee2e2; color:#991b1b; padding:10px; border-radius:8px; margin-bottom:12px; font-weight:700; text-align:center;">{{ error }}</div>
     {% endif %}
-    <form method="POST" style="display:grid; gap:12px;">
-        <input type="text" name="username" class="form-control" placeholder="اسم المستخدم" value="admin" required>
-        <input type="password" name="password" class="form-control" placeholder="كلمة المرور" value="123456" required>
-        <button type="submit" class="btn btn-primary" style="padding:11px;">تسجيل الدخول</button>
+    <form method="POST" autocomplete="off">
+        <div class="form-group">
+            <label>اسم المستخدم</label>
+            <input type="text" name="username" required autocomplete="off" placeholder="أدخل اسم المسؤول">
+        </div>
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" name="password" required autocomplete="new-password" placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:11px; margin-top:8px;">دخول لوحة التحكم</button>
     </form>
-    <a href="/" style="display:block; margin-top:15px; color:#64748b; font-size:0.88rem;">← العودة للموقع الرئيسي</a>
+    <div style="text-align:center; margin-top:14px;">
+        <a href="{{ url_for('index') }}" style="color:#64748b; font-size:0.85rem;">العودة للموقع الرئيسي</a>
+    </div>
 </div>
 
 {% else %}
-<header>
-    <h2>⚙️ لوحة تحكم منصة أملاك</h2>
-    <div style="display:flex; gap:10px;">
-        <a href="/" class="btn btn-light">معاينة الموقع 🌐</a>
-        <a href="/admin/logout" class="btn btn-danger">خروج</a>
+<nav class="navbar">
+    <span><i class="fa-solid fa-shield-halved"></i> لوحة تحكم أملاك CRM</span>
+    <span style="font-size:0.82rem; background:rgba(255,255,255,0.15); padding:4px 12px; border-radius:20px;">{{ db_mode }}</span>
+    <div style="display:flex; gap:12px;">
+        <a href="{{ url_for('index') }}">معاينة الموقع</a>
+        <a href="{{ url_for('admin_logout') }}" style="color:#fca5a5;">تسجيل خروج</a>
     </div>
-</header>
+</nav>
 
 <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for cat, msg in messages %}
+                <div style="background:#d1fae5; color:#065f46; padding:12px 16px; border-radius:10px; margin-bottom:16px; font-weight:700;">{{ msg }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-box"><span>إجمالي العقارات</span><strong>{{ stats.total_props }}</strong></div>
+        <div class="stat-box" style="border-color:#059669;"><span>عقارات متاحة</span><strong>{{ stats.available_props }}</strong></div>
+        <div class="stat-box" style="border-color:#d97706;"><span>محجوز مبدئياً (تفاوض)</span><strong>{{ stats.reserved_props }}</strong></div>
+        <div class="stat-box" style="border-color:#dc2626;"><span>تم البيع / التأجير</span><strong>{{ stats.sold_props }}</strong></div>
+        <div class="stat-box" style="border-color:#2563eb;"><span>طلبات معاينة معلقة</span><strong>{{ stats.pending_inquiries }}</strong></div>
+        <div class="stat-box" style="border-color:#7c3aed;"><span>العملاء المسجلين</span><strong>{{ stats.total_users }}</strong></div>
+    </div>
+
+    <!-- Excel Export Backup -->
+    <div class="card" style="background:#f0fdf4; border-color:#86efac;">
+        <h3 style="color:#166534;"><i class="fa-solid fa-file-excel"></i> النسخ الاحتياطي وتصدير بيانات إكسيل (Excel)</h3>
+        <p style="font-size:0.88rem; color:#15803d; margin-bottom:12px;">حمّل نسخة كاملة من قاعدة البيانات على جهازك بصيغة متوافقة مع Microsoft Excel باللغة العربية في أي وقت:</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{{ url_for('export_excel_csv', target='properties') }}" class="btn btn-excel"><i class="fa-solid fa-download"></i> تصدير إكسيل العقارات</a>
+            <a href="{{ url_for('export_excel_csv', target='inquiries') }}" class="btn btn-excel"><i class="fa-solid fa-download"></i> تصدير إكسيل طلبات المعاينة</a>
+            <a href="{{ url_for('export_excel_csv', target='users') }}" class="btn btn-excel"><i class="fa-solid fa-download"></i> تصدير إكسيل العملاء المسجلين</a>
+        </div>
+    </div>
+
+    <!-- Add New Property with Multiple Images -->
     <div class="card">
-        <h3>➕ إضافة عقار جديد للمنصة</h3>
-        <form method="POST" action="/admin/add" enctype="multipart/form-data">
+        <h3><i class="fa-solid fa-plus-circle"></i> إضافة عقار جديد (يدعم رفع صور متعددة)</h3>
+        <form method="POST" action="{{ url_for('add_property') }}" enctype="multipart/form-data">
             <div class="form-grid">
-                <input type="text" name="title" class="form-control" placeholder="عنوان العقار (مثال: فيلا مودرن)" required>
-                <select name="purpose" class="form-control">
-                    <option value="للبيع">للبيع</option>
-                    <option value="للإيجار">للإيجار</option>
-                </select>
-                <select name="prop_type" class="form-control">
-                    <option value="فيلا">فيلا</option>
-                    <option value="شقة">شقة</option>
-                    <option value="دوبلكس">دوبلكس</option>
-                    <option value="مكتب إداري">مكتب إداري</option>
-                </select>
-                <input type="text" name="city" class="form-control" placeholder="المدينة والحي" required>
-                <input type="number" name="price" class="form-control" placeholder="السعر" required>
-                <input type="number" name="area" class="form-control" placeholder="المساحة (م²)" required>
-                <input type="number" name="bedrooms" class="form-control" placeholder="عدد الغرف" required>
-                <input type="number" name="bathrooms" class="form-control" placeholder="عدد الحمامات" required>
-                <input type="text" name="badge" class="form-control" placeholder="الشارة (مميز / حصري / جديد)" value="جديد">
-            </div>
-
-            <div class="upload-box">
-                <div>
-                    <label style="font-weight:700; color:#0f4c81; display:block; margin-bottom:6px;">📸 اختر صورة العقار من جهازك مباشرة:</label>
-                    <input type="file" name="image_file" accept="image/*" onchange="previewFile(this)">
+                <div class="form-group"><label>عنوان العقار *</label><input type="text" name="title" required placeholder="شقة سوبر لوكس 160م..."></div>
+                <div class="form-group">
+                    <label>الغرض</label>
+                    <select name="purpose"><option value="بيع">بيع</option><option value="إيجار">إيجار</option></select>
                 </div>
-                <img id="previewImg" alt="معاينة الصورة">
+                <div class="form-group">
+                    <label>النوع</label>
+                    <select name="prop_type"><option value="شقة">شقة</option><option value="فيلا">فيلا</option><option value="مقر إداري">مقر إداري</option><option value="أرض">أرض</option></select>
+                </div>
+                <div class="form-group"><label>المدينة *</label><input type="text" name="city" required value="المنصورة"></div>
+                <div class="form-group"><label>الحي / المنطقة *</label><input type="text" name="district" required placeholder="المشاية، حي الجامعة..."></div>
+                <div class="form-group"><label>السعر (ج.م) *</label><input type="number" name="price" required></div>
+                <div class="form-group"><label>المساحة (م²) *</label><input type="number" name="area" required></div>
+                <div class="form-group"><label>عدد الغرف</label><input type="number" name="rooms" value="3"></div>
+                <div class="form-group"><label>عدد الحمامات</label><input type="number" name="bathrooms" value="2"></div>
+                <div class="form-group"><label>الدور</label><input type="text" name="floor_num" value="الثالث"></div>
+                <div class="form-group"><label>التشطيب</label><input type="text" name="finishing" value="سوبر لوكس"></div>
             </div>
-
-            <textarea name="description" class="form-control" rows="2" placeholder="وصف تفصيلي للعقار..." style="margin-top:12px;" required></textarea>
-            <button type="submit" class="btn btn-success" style="margin-top:14px; padding:10px 24px;">نشر العقار الآن ✅</button>
+            <div class="form-grid" style="margin-top:8px;">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-images"></i> رفع صور متعددة من جهازك (اختار أكتر من صورة)</label>
+                    <input type="file" name="image_files" accept="image/*" multiple>
+                </div>
+                <div class="form-group">
+                    <label>أو روابط صور إضافية (كل رابط في سطر منفصل)</label>
+                    <textarea name="image_urls" rows="2" placeholder="https://..."></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>وصف العقار</label>
+                <textarea name="description" rows="2" required placeholder="اكتب تفاصيل العقار والمميزات..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-accent" style="padding:11px 22px;"><i class="fa-solid fa-upload"></i> نشر العقار الآن</button>
         </form>
     </div>
 
+    <!-- Inquiries Queue Management -->
     <div class="card">
-        <h3>🏢 إدارة العقارات المدرجة ({{ properties|length }})</h3>
+        <h3><i class="fa-solid fa-list-ol"></i> إدارة طلبات المعاينة ونظام الأولوية والموافقة</h3>
         <div style="overflow-x:auto;">
             <table>
                 <thead>
                     <tr>
+                        <th>الأولوية</th>
                         <th>العقار</th>
-                        <th>المدينة</th>
-                        <th>السعر</th>
+                        <th>العميل</th>
+                        <th>الهاتف</th>
+                        <th>الموعد والملاحظات</th>
                         <th>الحالة</th>
-                        <th>التحكم</th>
+                        <th>قرار الإدارة (واتساب فوري)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inq in inquiries %}
+                    <tr>
+                        <td><strong style="color:#d97706; font-size:1rem;">#{{ inq.priority_num }}</strong></td>
+                        <td><strong>{{ inq.property_code }}</strong><br><small>{{ inq.property_title }}</small></td>
+                        <td>{{ inq.client_name }}</td>
+                        <td>{{ inq.client_phone }}</td>
+                        <td>{{ inq.preferred_date or '-' }}<br><small style="color:#64748b;">{{ inq.notes }}</small></td>
+                        <td><strong>{{ inq.status }}</strong></td>
+                        <td>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                <form method="POST" action="{{ url_for('inquiry_action', inq_id=inq.id) }}" target="_blank">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="btn btn-success" title="موافقة + حجز مبدئي للعقار + فتح واتساب">
+                                        <i class="fa-brands fa-whatsapp"></i> موافقة
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('inquiry_action', inq_id=inq.id) }}" target="_blank">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" class="btn btn-accent" title="اعتذار عبر واتساب">
+                                        <i class="fa-solid fa-xmark"></i> اعتذار
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('inquiry_action', inq_id=inq.id) }}">
+                                    <input type="hidden" name="action" value="delete">
+                                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" style="text-align:center;">لا توجد طلبات معاينة حتى الآن.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Properties Management -->
+    <div class="card">
+        <h3><i class="fa-solid fa-building"></i> إدارة العقارات وحالة التوافر ({{ properties|length }})</h3>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>الكود</th>
+                        <th>الصور</th>
+                        <th>العقار</th>
+                        <th>السعر</th>
+                        <th>الحالة الحالية (التحكم في القفل)</th>
+                        <th>حذف</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for p in properties %}
                     <tr>
-                        <td><strong>{{ p.title }}</strong><br><small style="color:#64748b;">{{ p.purpose }} - {{ p.prop_type }}</small></td>
-                        <td>{{ p.city }}</td>
-                        <td>{{ "{:,}".format(p.price) }}</td>
-                        <td><strong>{{ p.status }}</strong></td>
-                        <td class="actions">
-                            <form method="POST" action="/admin/status/{{ p.id }}/متاح"><button class="btn btn-success">متاح</button></form>
-                            <form method="POST" action="/admin/status/{{ p.id }}/مباع"><button class="btn btn-warning">مباع</button></form>
-                            <form method="POST" action="/admin/delete/{{ p.id }}"><button class="btn btn-danger">حذف</button></form>
+                        <td><strong>{{ p.code }}</strong></td>
+                        <td>{{ p.all_images|length }} صور</td>
+                        <td>{{ p.title }}<br><small style="color:#64748b;">{{ p.city }} - {{ p.district }}</small></td>
+                        <td>{{ "{:,.0f}".format(p.price) }} ج.م</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('update_property_status', prop_id=p.id) }}" style="display:flex; gap:6px;">
+                                <select name="status" style="padding:5px 8px; border-radius:6px; border:1px solid #cbd5e1;">
+                                    <option value="متاح" {% if p.status == 'متاح' %}selected{% endif %}>متاح</option>
+                                    <option value="محجوز مبدئياً" {% if p.status == 'محجوز مبدئياً' %}selected{% endif %}>محجوز مبدئياً (قيد التفاوض)</option>
+                                    <option value="مباع" {% if p.status == 'مباع' %}selected{% endif %}>مباع</option>
+                                    <option value="مؤجر" {% if p.status == 'مؤجر' %}selected{% endif %}>مؤجر</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary">حفظ</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('delete_property', prop_id=p.id) }}" onsubmit="return confirm('حذف العقار نهائياً؟')">
+                                <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}
@@ -135,51 +242,7 @@
             </table>
         </div>
     </div>
-
-    <div class="card">
-        <h3>📅 طلبات المعاينة الواردة من العملاء ({{ inquiries|length }})</h3>
-        <div style="overflow-x:auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>اسم العميل</th>
-                        <th>رقم الجوال</th>
-                        <th>العقار المطلوب</th>
-                        <th>موعد المعاينة</th>
-                        <th>ملاحظات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in inquiries %}
-                    <tr>
-                        <td><strong>{{ i.client_name }}</strong></td>
-                        <td>{{ i.client_phone }}</td>
-                        <td>{{ i.property_title }}</td>
-                        <td>{{ i.visit_date }}</td>
-                        <td>{{ i.notes or '-' }}</td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="5" style="text-align:center; color:#64748b;">لا توجد طلبات معاينة حتى الآن.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
-
-<script>
-    function previewFile(input) {
-        const preview = document.getElementById('previewImg');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-</script>
 {% endif %}
 
 </body>

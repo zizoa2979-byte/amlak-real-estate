@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حسابي | منصة أملاك العقارية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background: #f4f7fa; color: #1e293b; }
+        .navbar { background: #0f2942; color: #fff; padding: 14px 5%; display: flex; justify-content: space-between; align-items: center; }
+        .navbar a { color: #fff; text-decoration: none; font-weight: 700; }
+        .container { max-width: 1100px; margin: 28px auto; padding: 0 20px; }
+        .card { background: #fff; border-radius: 14px; padding: 22px; margin-bottom: 24px; box-shadow: 0 4px 14px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        h2 { color: #0f2942; margin-bottom: 14px; font-size: 1.3rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; }
+        th { background: #f8fafc; color: #0f2942; }
+        .badge { padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; }
+        .st-ok { background: #d1fae5; color: #065f46; }
+        .st-wait { background: #fef3c7; color: #92400e; }
+        .st-no { background: #fee2e2; color: #991b1b; }
+        .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+        .fav-item { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+        .fav-item img { width: 100%; height: 150px; object-fit: cover; }
+        .fav-item-body { padding: 12px; }
+        .btn { padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; text-decoration: none; display: inline-block; font-size: 0.85rem; }
+        .btn-wa { background: #16a34a; color: #fff; }
+        .btn-del { background: #fee2e2; color: #b91c1c; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <a href="{{ url_for('index') }}"><i class="fa-solid fa-arrow-right"></i> العودة للرئيسية</a>
+    <span>أهلاً، {{ user.full_name }} ({{ user.phone }})</span>
+    <a href="{{ url_for('client_logout') }}">تسجيل خروج</a>
+</nav>
+
+<div class="container">
+    <div class="card">
+        <h2><i class="fa-solid fa-calendar-check"></i> طلبات المعاينة وحالة الأولوية ({{ inquiries|length }})</h2>
+        {% if inquiries %}
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>الأولوية</th>
+                        <th>العقار</th>
+                        <th>الموعد المفضل</th>
+                        <th>حالة الطلب</th>
+                        <th>متابعة واتساب</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inq in inquiries %}
+                    <tr>
+                        <td><strong>#{{ inq.priority_num }}</strong></td>
+                        <td>{{ inq.property_code }} - {{ inq.property_title }}</td>
+                        <td>{{ inq.preferred_date or 'أقرب وقت' }}</td>
+                        <td>
+                            {% if 'الموافقة' in inq.status %}
+                                <span class="badge st-ok">{{ inq.status }}</span>
+                            {% elif 'مرفوض' in inq.status %}
+                                <span class="badge st-no">{{ inq.status }}</span>
+                            {% else %}
+                                <span class="badge st-wait">{{ inq.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="https://wa.me/{{ whatsapp_number }}?text={{ ('متابعة طلب المعاينة رقم #' + inq.id|string + ' للعقار ' + inq.property_code) | urlencode }}" target="_blank" class="btn btn-wa">
+                                <i class="fa-brands fa-whatsapp"></i> تواصل
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p style="color:#64748b;">لم تقم بحجز أي معاينات حتى الآن.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2><i class="fa-solid fa-heart" style="color:#e11d48;"></i> العقارات المحفوظة في المفضلة ({{ fav_properties|length }})</h2>
+        {% if fav_properties %}
+        <div class="fav-grid">
+            {% for p in fav_properties %}
+            <div class="fav-item">
+                <img src="{{ p.all_images[0] }}" alt="{{ p.title }}">
+                <div class="fav-item-body">
+                    <div style="font-weight:800; color:#d97706;">{{ "{:,.0f}".format(p.price) }} ج.م</div>
+                    <div style="font-weight:700; margin:4px 0;">{{ p.title }}</div>
+                    <div style="font-size:0.82rem; color:#64748b; margin-bottom:10px;">{{ p.city }} - {{ p.district }}</div>
+                    <form method="POST" action="{{ url_for('toggle_favorite', prop_id=p.id) }}">
+                        <button type="submit" class="btn btn-del">إزالة من المفضلة</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <p style="color:#64748b;">قائمة المفضلة فارغة حالياً. اضغط على علامة القلب ❤️ على أي عقار لحفظه هنا.</p>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

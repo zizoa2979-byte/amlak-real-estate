@@ -3,333 +3,534 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة أملاك العقارية | وجهتك للعقارات الفاخرة</title>
+    <title>منصة أملاك العقارية | بوابتك الذكية للاستثمار والسكن</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
-            --bg: #f8fafc;
-            --surface: #ffffff;
-            --text: #0f172a;
-            --text-muted: #64748b;
-            --primary: #0f4c81;
-            --primary-hover: #0a365c;
+            --primary: #0f2942;
+            --primary-light: #1a436b;
             --accent: #d97706;
-            --border: #e2e8f0;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06);
-        }
-        [data-theme="dark"] {
-            --bg: #0b1120;
-            --surface: #1e293b;
-            --text: #f1f5f9;
-            --text-muted: #94a3b8;
-            --primary: #38bdf8;
-            --primary-hover: #0284c7;
-            --accent: #f59e0b;
-            --border: #334155;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+            --accent-hover: #b45309;
+            --bg: #f4f7fa;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background: var(--bg); color: var(--text); transition: 0.3s; line-height: 1.6; }
+        body { background: var(--bg); color: var(--text); line-height: 1.6; }
 
-        header {
-            background: var(--surface); border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; z-index: 100; padding: 15px 5%;
-            display: flex; justify-content: space-between; align-items: center;
+        /* Navbar */
+        .navbar {
+            background: var(--primary);
+            color: #fff;
+            padding: 14px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; text-decoration: none; }
-        .nav-actions { display: flex; gap: 12px; align-items: center; }
+        .brand { font-size: 1.4rem; font-weight: 800; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .brand i { color: var(--accent); font-size: 1.6rem; }
+        .nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .btn {
-            padding: 9px 18px; border-radius: 10px; border: none; cursor: pointer;
-            font-weight: 700; font-size: 0.9rem; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+            font-weight: 700; font-size: 0.9rem; text-decoration: none; display: inline-flex;
+            align-items: center; gap: 6px; transition: 0.2s;
         }
-        .btn-primary { background: var(--primary); color: #fff; }
-        [data-theme="dark"] .btn-primary { color: #0f172a; }
-        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
-        .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
-        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-accent { background: var(--accent); color: #fff; }
+        .btn-accent:hover { background: var(--accent-hover); }
+        .btn-outline { background: transparent; border: 1.5px solid rgba(255,255,255,0.4); color: #fff; }
+        .btn-outline:hover { background: rgba(255,255,255,0.12); }
+        .btn-wa { background: #16a34a; color: #fff; }
+        .btn-wa:hover { background: #15803d; }
 
+        /* Alerts */
+        .alert-box { max-width: 1200px; margin: 16px auto 0; padding: 0 20px; }
+        .alert {
+            padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; font-weight: 700;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .alert-info { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+
+        /* Hero & Search */
         .hero {
-            background: linear-gradient(135deg, rgba(15, 76, 129, 0.92), rgba(11, 17, 32, 0.88)),
-                        url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80') center/cover;
-            color: #fff; padding: 70px 5% 90px; text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #fff;
+            padding: 50px 5% 65px;
+            text-align: center;
         }
-        .hero h1 { font-size: 2.3rem; font-weight: 800; margin-bottom: 12px; }
-        .hero p { font-size: 1.05rem; color: #cbd5e1; max-width: 650px; margin: 0 auto 25px; }
-        .stats-bar { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; }
-        .stat-item { background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); padding: 10px 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
-        .stat-item strong { color: #fbbf24; font-size: 1.3rem; display: block; }
+        .hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; }
+        .hero p { color: #cbd5e1; max-width: 680px; margin: 0 auto 28px; font-size: 1.05rem; }
 
-        .search-box {
-            max-width: 1100px; margin: -45px auto 40px; background: var(--surface);
-            padding: 22px; border-radius: 16px; box-shadow: var(--shadow);
-            border: 1px solid var(--border); display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;
+        .search-bar {
+            background: #fff;
+            max-width: 1100px;
+            margin: -35px auto 30px;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
         }
-        .form-control {
-            width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--border);
-            background: var(--bg); color: var(--text); font-size: 0.95rem; outline: none;
+        .search-bar input, .search-bar select {
+            padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+            font-size: 0.95rem; outline: none; width: 100%;
         }
-        .form-control:focus { border-color: var(--primary); }
+        .search-bar input:focus, .search-bar select:focus { border-color: var(--primary); }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 5% 60px; }
-        .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+        /* Container & Grid */
+        .container { max-width: 1240px; margin: 0 auto; padding: 10px 20px 60px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
+        .section-header h2 { font-size: 1.5rem; color: var(--primary); font-weight: 800; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
         .card {
-            background: var(--surface); border-radius: 16px; overflow: hidden;
-            border: 1px solid var(--border); box-shadow: var(--shadow); transition: 0.3s; display: flex; flex-direction: column;
+            background: var(--card);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
         }
-        .card:hover { transform: translateY(-6px); }
-        .card-img { position: relative; height: 220px; overflow: hidden; }
-        .card-img img { width: 100%; height: 100%; object-fit: cover; transition: 0.4s; }
-        .card:hover .card-img img { transform: scale(1.06); }
+        .card:hover { transform: translateY(-4px); }
+
+        /* Image Carousel inside Card */
+        .slider-box { position: relative; height: 230px; background: #0f172a; overflow: hidden; }
+        .slider-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .slider-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(15, 41, 66, 0.78); color: #fff; border: none;
+            width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+        }
+        .slider-btn:hover { background: var(--accent); }
+        .slider-prev { right: 10px; }
+        .slider-next { left: 10px; }
+        .img-counter {
+            position: absolute; bottom: 10px; left: 10px;
+            background: rgba(0,0,0,0.68); color: #fff; padding: 2px 10px;
+            border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+        }
+        .badge-top-right {
+            position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; flex-wrap: wrap;
+        }
         .badge {
-            position: absolute; top: 14px; right: 14px; background: var(--accent); color: #fff;
-            padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+            padding: 4px 11px; border-radius: 6px; font-size: 0.78rem; font-weight: 800; color: #fff;
         }
-        .status-tag {
-            position: absolute; top: 14px; left: 14px; padding: 4px 12px; border-radius: 20px;
-            font-size: 0.8rem; font-weight: 700; color: #fff;
-        }
-        .status-available { background: #10b981; }
-        .status-sold { background: #ef4444; }
-        .card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .card-meta { color: var(--primary); font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; }
-        .card-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 10px; }
-        .card-specs {
-            display: flex; gap: 15px; padding: 12px 0; border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border); margin: 12px 0; font-size: 0.88rem; color: var(--text-muted);
-        }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .price { font-size: 1.2rem; font-weight: 800; color: var(--accent); }
+        .bg-purpose { background: var(--primary); }
+        .bg-code { background: rgba(15,23,42,0.8); }
+        .bg-avail { background: var(--success); }
+        .bg-reserved { background: var(--warning); }
+        .bg-sold { background: var(--danger); }
 
-        .calculator-section {
-            background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
-            padding: 30px; margin-top: 60px; box-shadow: var(--shadow);
+        .fav-btn {
+            position: absolute; top: 12px; left: 12px;
+            background: rgba(255,255,255,0.92); border: none; width: 36px; height: 36px;
+            border-radius: 50%; cursor: pointer; font-size: 1.05rem; color: #94a3b8;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-top: 20px; }
+        .fav-btn.active { color: #e11d48; }
+
+        .card-body { padding: 18px; flex: 1; display: flex; flex-direction: column; }
+        .price-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+        .price { font-size: 1.35rem; font-weight: 800; color: var(--accent); }
+        .ppm { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+        .card-title { font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-bottom: 6px; }
+        .location { color: var(--muted); font-size: 0.88rem; margin-bottom: 12px; }
+        .specs {
+            display: flex; justify-content: space-between; background: #f8fafc;
+            padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 700;
+            margin-bottom: 12px; border: 1px solid #e2e8f0;
+        }
+        .desc { font-size: 0.88rem; color: #475569; margin-bottom: 14px; flex: 1; }
+        .demand-note {
+            font-size: 0.8rem; background: #fffbeb; color: #92400e; padding: 6px 10px;
+            border-radius: 6px; margin-bottom: 12px; font-weight: 700; border: 1px solid #fde68a;
+        }
+        .card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .card-actions .btn { justify-content: center; padding: 10px 8px; font-size: 0.85rem; }
+
+        /* Mortgage Calculator & Compare */
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 45px; }
+        .tool-card { background: #fff; padding: 24px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 14px rgba(0,0,0,0.04); }
+        .tool-card h3 { color: var(--primary); margin-bottom: 14px; font-size: 1.2rem; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.92rem;
+        }
         .calc-result {
-            background: var(--bg); padding: 20px; border-radius: 14px; text-align: center;
-            border: 1.5px dashed var(--primary); margin-top: 20px;
+            background: #f0fdf4; border: 1px solid #86efac; padding: 14px; border-radius: 10px;
+            margin-top: 12px; text-align: center; font-weight: 800; color: #166534;
         }
 
+        /* Modals */
         .modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65);
-            z-index: 999; align-items: center; justify-content: center; padding: 20px;
+            display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.65);
+            z-index: 2000; align-items: center; justify-content: center; padding: 16px;
         }
-        .modal.active { display: flex; }
+        .modal.open { display: flex; }
         .modal-content {
-            background: var(--surface); max-width: 550px; width: 100%; border-radius: 18px;
-            padding: 25px; max-height: 90vh; overflow-y: auto; position: relative;
+            background: #fff; width: 100%; max-width: 480px; border-radius: 14px;
+            padding: 24px; position: relative; max-height: 90vh; overflow-y: auto;
         }
-        .close-btn { position: absolute; top: 18px; left: 20px; font-size: 1.5rem; cursor: pointer; background: none; border: none; color: var(--text); }
+        .close-modal {
+            position: absolute; top: 14px; left: 16px; font-size: 1.4rem;
+            background: none; border: none; cursor: pointer; color: var(--muted);
+        }
 
-        .alert-success { background: #10b981; color: #fff; text-align: center; padding: 12px; font-weight: 700; }
-
+        /* Floating WhatsApp */
+        .wa-float {
+            position: fixed; bottom: 22px; left: 22px; background: #16a34a; color: #fff;
+            width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-size: 1.8rem; box-shadow: 0 6px 20px rgba(22,163,74,0.4);
+            z-index: 1500; text-decoration: none;
+        }
         footer {
-            background: var(--surface); border-top: 1px solid var(--border);
-            padding: 30px 5%; text-align: center; color: var(--text-muted); font-size: 0.9rem;
+            background: var(--primary); color: #cbd5e1; text-align: center; padding: 24px 5%;
+            font-size: 0.9rem; margin-top: 40px;
         }
-        footer strong { color: var(--primary); }
     </style>
 </head>
 <body>
 
-{% if request.args.get('booked') %}
-<div class="alert-success">✅ تم استلام طلب المعاينة بنجاح! سيتواصل معك مستشارنا العقاري في أقرب وقت.</div>
-{% endif %}
-
-<header>
-    <a href="/" class="logo">🏢 منصة أملاك العقارية</a>
+<nav class="navbar">
+    <a href="{{ url_for('index') }}" class="brand">
+        <i class="fa-solid fa-building-columns"></i>
+        <span>منصة أملاك العقارية</span>
+    </a>
     <div class="nav-actions">
-        <button class="btn btn-outline" onclick="toggleTheme()" id="themeBtn">🌙 الوضع الليلي</button>
-        <a href="/admin" class="btn btn-primary">لوحة الإدارة ⚙️</a>
+        {% if current_user %}
+            <a href="{{ url_for('my_account') }}" class="btn btn-accent">
+                <i class="fa-solid fa-user-check"></i> حسابي ({{ current_user.full_name.split()[0] }})
+            </a>
+            <a href="{{ url_for('client_logout') }}" class="btn btn-outline">خروج</a>
+        {% else %}
+            <button class="btn btn-accent" onclick="openModal('authModal')">
+                <i class="fa-solid fa-user"></i> دخول / حساب جديد
+            </button>
+        {% endif %}
+        <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" class="btn btn-wa">
+            <i class="fa-brands fa-whatsapp"></i> تواصل واتساب
+        </a>
+        <a href="{{ url_for('admin_login') }}" class="btn btn-outline" title="دخول الإدارة">
+            <i class="fa-solid fa-shield-halved"></i> الإدارة
+        </a>
     </div>
-</header>
+</nav>
+
+<div class="alert-box">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <span>{{ message }}</span>
+                    {% if request.args.get('booked') == '1' and session.get('last_wa_link') %}
+                        <a href="{{ session.get('last_wa_link') }}" target="_blank" class="btn btn-wa">
+                            <i class="fa-brands fa-whatsapp"></i> تأكيد الموعد الآن عبر واتساب
+                        </a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
 
 <section class="hero">
     <h1>اكتشف منزل أحلامك أو استثمارك العقاري القادم</h1>
-    <p>نخبة من الفلل الفاخرة، الشقق العصرية، والمقرات الإدارية في أرقى الأحياء مع إمكانية حجز المعاينة الفورية.</p>
-    <div class="stats-bar">
-        <div class="stat-item"><strong>{{ total_props }}</strong>عقار مدرج</div>
-        <div class="stat-item"><strong>{{ available_props }}</strong>متاح حالياً</div>
-        <div class="stat-item"><strong>100%</strong>موثوقية ومطابقة</div>
-    </div>
+    <p>نظام عقاري متكامل للبيع والإيجار مع حجز أولوية المعاينة، متابعة فورية عبر واتساب، وحاسبة تمويل عقاري ذكية.</p>
 </section>
 
-<div class="container">
-    <form class="search-box" method="GET" action="/" id="filterForm"
-          data-purpose="{{ filters.purpose }}" data-type="{{ filters.prop_type }}">
-        <select name="purpose" id="purposeSelect" class="form-control">
-            <option value="">الغرض (الكل)</option>
-            <option value="للبيع">للبيع</option>
-            <option value="للإيجار">للإيجار</option>
-        </select>
-        <select name="prop_type" id="typeSelect" class="form-control">
-            <option value="">نوع العقار (الكل)</option>
-            <option value="فيلا">فيلا</option>
-            <option value="شقة">شقة</option>
-            <option value="دوبلكس">دوبلكس</option>
-            <option value="مكتب إداري">مكتب إداري</option>
-        </select>
-        <input type="text" name="city" class="form-control" placeholder="المدينة أو الحي..." value="{{ filters.city }}">
-        <input type="number" name="max_price" class="form-control" placeholder="أقصى ميزانية..." value="{{ filters.max_price }}">
-        <button type="submit" class="btn btn-primary" style="justify-content:center;">🔍 بحث متقدم</button>
-    </form>
+<form class="search-bar" method="GET" action="{{ url_for('index') }}">
+    <input type="text" name="q" placeholder="ابحث بالحي، العنوان، أو كود العقار..." value="{{ filters.q }}">
+    <select name="purpose">
+        <option value="">كل الأغراض (بيع / إيجار)</option>
+        <option value="بيع" {% if filters.purpose == 'بيع' %}selected{% endif %}>للبيع</option>
+        <option value="إيجار" {% if filters.purpose == 'إيجار' %}selected{% endif %}>للإيجار</option>
+    </select>
+    <select name="prop_type">
+        <option value="">كل الأنواع</option>
+        <option value="شقة" {% if filters.prop_type == 'شقة' %}selected{% endif %}>شقة سكنية</option>
+        <option value="فيلا" {% if filters.prop_type == 'فيلا' %}selected{% endif %}>فيلا</option>
+        <option value="مقر إداري" {% if filters.prop_type == 'مقر إداري' %}selected{% endif %}>مقر إداري / عيادة</option>
+        <option value="أرض" {% if filters.prop_type == 'أرض' %}selected{% endif %}>أرض</option>
+    </select>
+    <input type="text" name="city" placeholder="المدينة (مثل: المنصورة، نبروه)" value="{{ filters.city }}">
+    <input type="number" name="max_price" placeholder="أقصى سعر (ج.م)" value="{{ filters.max_price }}">
+    <button type="submit" class="btn btn-accent" style="justify-content: center;">
+        <i class="fa-solid fa-magnifying-glass"></i> بحث الآن
+    </button>
+</form>
 
-    <div class="section-head">
-        <h2>أحدث العقارات المميزة ({{ properties|length }})</h2>
-        {% if filters.purpose or filters.prop_type or filters.city or filters.max_price %}
-        <a href="/" class="btn btn-outline">إعادة ضبط الفلاتر ✖</a>
-        {% endif %}
+<div class="container">
+    <div class="section-header">
+        <h2>أحدث العقارات المتاحة ({{ properties|length }})</h2>
+        <span style="font-size: 0.85rem; color: var(--muted);">
+            <i class="fa-solid fa-database"></i> حالة الاتصال: <strong>{{ db_mode }}</strong>
+        </span>
     </div>
 
     <div class="grid">
-        {% for p in properties %}
-        <div class="card">
-            <div class="card-img">
-                <img src="{{ p.image_url }}" alt="{{ p.title }}">
-                <span class="badge">{{ p.badge }}</span>
-                <span class="status-tag {% if p.status == 'متاح' %}status-available{% else %}status-sold{% endif %}">{{ p.status }}</span>
-            </div>
-            <div class="card-body">
-                <div>
-                    <div class="card-meta">{{ p.purpose }} • {{ p.prop_type }} • 📍 {{ p.city }}</div>
-                    <h3 class="card-title">{{ p.title }}</h3>
-                    <div class="card-specs">
-                        <span>📐 {{ p.area }} م²</span>
-                        <span>🛏️ {{ p.bedrooms }} غرف</span>
-                        <span>🚿 {{ p.bathrooms }} حمام</span>
-                    </div>
+        {% for prop in properties %}
+        <div class="card" data-images='{{ prop.all_images | tojson }}' data-idx="0">
+            <div class="slider-box">
+                <img src="{{ prop.all_images[0] }}" alt="{{ prop.title }}" class="card-img">
+                {% if prop.all_images|length > 1 %}
+                    <button type="button" class="slider-btn slider-prev" onclick="slideImg(this, -1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button type="button" class="slider-btn slider-next" onclick="slideImg(this, 1)"><i class="fa-solid fa-chevron-left"></i></button>
+                    <span class="img-counter">1 / {{ prop.all_images|length }}</span>
+                {% endif %}
+
+                <div class="badge-top-right">
+                    <span class="badge bg-purpose">{{ prop.purpose }}</span>
+                    <span class="badge bg-code">{{ prop.code }}</span>
+                    {% if prop.status == 'متاح' %}
+                        <span class="badge bg-avail">متاح</span>
+                    {% elif prop.status == 'محجوز مبدئياً' %}
+                        <span class="badge bg-reserved">محجوز مبدئياً</span>
+                    {% else %}
+                        <span class="badge bg-sold">{{ prop.status }}</span>
+                    {% endif %}
                 </div>
-                <div class="card-footer">
-                    <div class="price">{{ "{:,}".format(p.price) }}</div>
-                    <button class="btn btn-primary"
-                        data-title="{{ p.title }}"
-                        data-city="{{ p.city }}"
-                        data-price="{{ '{:,}'.format(p.price) }}"
-                        data-desc="{{ p.description }}"
-                        data-status="{{ p.status }}"
-                        onclick="openModalFromBtn(this)">
-                        التفاصيل والمعاينة
+
+                <form method="POST" action="{{ url_for('toggle_favorite', prop_id=prop.id) }}">
+                    <button type="submit" class="fav-btn {% if prop.id in user_favorites %}active{% endif %}" title="حفظ في المفضلة">
+                        <i class="fa-solid fa-heart"></i>
                     </button>
+                </form>
+            </div>
+
+            <div class="card-body">
+                <div class="price-row">
+                    <span class="price">{{ "{:,.0f}".format(prop.price) }} ج.م</span>
+                    <span class="ppm">{{ "{:,.0f}".format(prop.price_per_meter) }} ج.م / م²</span>
+                </div>
+                <h3 class="card-title">{{ prop.title }}</h3>
+                <div class="location"><i class="fa-solid fa-location-dot"></i> {{ prop.city }} - {{ prop.district }} ({{ prop.finishing }})</div>
+
+                <div class="specs">
+                    <span><i class="fa-solid fa-vector-square"></i> {{ prop.area|int }} م²</span>
+                    <span><i class="fa-solid fa-bed"></i> {{ prop.rooms }} غرف</span>
+                    <span><i class="fa-solid fa-bath"></i> {{ prop.bathrooms }} حمام</span>
+                    <span><i class="fa-solid fa-layer-group"></i> {{ prop.floor_num }}</span>
+                </div>
+
+                <p class="desc">{{ prop.description }}</p>
+
+                {% set cnt = inq_counts.get(prop.id, 0) %}
+                {% if prop.status == 'محجوز مبدئياً' %}
+                    <div class="demand-note">
+                        <i class="fa-solid fa-lock"></i> العقار قيد التفاوض حالياً — يمكنك التسجيل في <strong>قائمة الانتظار</strong>.
+                    </div>
+                {% elif cnt > 0 %}
+                    <div class="demand-note">
+                        <i class="fa-solid fa-fire"></i> يوجد <strong>{{ cnt }}</strong> طلب معاينة مسجل — احجز دورك الآن!
+                    </div>
+                {% endif %}
+
+                <div class="card-actions">
+                    {% if prop.status == 'مباع' or prop.status == 'مؤجر' %}
+                        <button class="btn" style="background:#cbd5e1; color:#475569; cursor:not-allowed;" disabled>غير متاح</button>
+                    {% else %}
+                        <button class="btn btn-accent" onclick="openBookingModal('{{ prop.id }}', '{{ prop.code }} - {{ prop.title }}', '{{ prop.status }}')">
+                            <i class="fa-solid fa-calendar-check"></i>
+                            {{ 'قائمة انتظار' if prop.status == 'محجوز مبدئياً' else 'حجز معاينة' }}
+                        </button>
+                    {% endif %}
+
+                    <a href="https://wa.me/{{ whatsapp_number }}?text={{ ('السلام عليكم، أستفسر عن العقار كود ' + prop.code + ': ' + prop.title) | urlencode }}" target="_blank" class="btn btn-wa">
+                        <i class="fa-brands fa-whatsapp"></i> استفسار واتساب
+                    </a>
                 </div>
             </div>
         </div>
         {% else %}
-        <p style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">لا توجد عقارات مطابقة لخيارات البحث الحالية.</p>
+        <p style="grid-column: 1/-1; text-align:center; padding: 40px; background:#fff; border-radius:12px;">لا توجد عقارات مطابقة لبحثك حالياً.</p>
         {% endfor %}
     </div>
 
-    <section class="calculator-section">
-        <h2>🧮 حاسبة التمويل العقاري التفاعلية</h2>
-        <p style="color:var(--text-muted); font-size:0.95rem;">احسب قسطك الشهري التقديري بسهولة قبل اتخاذ قرار الشراء.</p>
-        <div class="calc-grid">
-            <div>
-                <label>سعر العقار الإجمالي</label>
-                <input type="number" id="calcPrice" class="form-control" value="4500000" oninput="calcMortgage()">
+    <!-- Tools Section -->
+    <div class="tools-grid">
+        <div class="tool-card">
+            <h3><i class="fa-solid fa-calculator"></i> حاسبة التمويل العقاري والأقساط</h3>
+            <div class="form-group">
+                <label>إجمالي سعر العقار (ج.م)</label>
+                <input type="number" id="calcPrice" value="3000000" oninput="calcMortgage()">
             </div>
-            <div>
-                <label>الدفعة المقدمة (%)</label>
-                <input type="number" id="calcDown" class="form-control" value="20" oninput="calcMortgage()">
+            <div class="form-group">
+                <label>نسبة المقدم (%)</label>
+                <input type="number" id="calcDown" value="25" min="0" max="90" oninput="calcMortgage()">
             </div>
-            <div>
-                <label>مدة التمويل (سنوات)</label>
-                <input type="number" id="calcYears" class="form-control" value="15" oninput="calcMortgage()">
+            <div class="form-group">
+                <label>مدة التقسيط (بالسنوات)</label>
+                <input type="number" id="calcYears" value="7" min="1" max="25" oninput="calcMortgage()">
             </div>
-            <div>
-                <label>نسبة المرابحة السنوية (%)</label>
-                <input type="number" id="calcRate" class="form-control" value="4.5" step="0.1" oninput="calcMortgage()">
+            <div class="calc-result" id="calcOutput">
+                المقدم: 750,000 ج.م | القسط الشهري التقريبي: 26,786 ج.م
             </div>
         </div>
-        <div class="calc-result">
-            <span>القسط الشهري التقديري:</span>
-            <h3 id="monthlyResult" style="font-size:1.8rem; color:var(--primary); margin-top:5px;">27,540</h3>
+
+        <div class="tool-card">
+            <h3><i class="fa-solid fa-scale-balanced"></i> مقارنة سريعة بين عقارين</h3>
+            <div class="form-group">
+                <label>العقار الأول</label>
+                <select id="cmp1" onchange="compareProps()">
+                    {% for p in properties %}
+                    <option value='{{ {"title": p.title, "price": p.price, "area": p.area, "ppm": p.price_per_meter, "city": p.city} | tojson }}'>{{ p.code }} - {{ p.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>العقار الثاني</label>
+                <select id="cmp2" onchange="compareProps()">
+                    {% for p in properties %}
+                    <option value='{{ {"title": p.title, "price": p.price, "area": p.area, "ppm": p.price_per_meter, "city": p.city} | tojson }}' {% if loop.index == 2 %}selected{% endif %}>{{ p.code }} - {{ p.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div id="cmpResult" style="font-size: 0.88rem; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+                اختر عقارين لعرض مقارنة السعر والمساحة وسعر المتر.
+            </div>
         </div>
-    </section>
+    </div>
 </div>
 
-<div class="modal" id="propModal">
+<!-- Booking Modal -->
+<div class="modal" id="bookingModal">
     <div class="modal-content">
-        <button class="close-btn" onclick="closeModal()">✖</button>
-        <h3 id="mTitle" style="margin-bottom:8px; padding-left:25px;"></h3>
-        <p id="mMeta" style="color:var(--primary); font-weight:700; margin-bottom:12px;"></p>
-        <p id="mDesc" style="color:var(--text-muted); font-size:0.95rem; margin-bottom:20px; background:var(--bg); padding:12px; border-radius:10px;"></p>
-
-        <h4 style="margin-bottom:12px;">📅 احجز موعد معاينة لهذا العقار</h4>
-        <form method="POST" action="/inquire" style="display:grid; gap:12px;">
-            <input type="hidden" name="property_title" id="mInputTitle">
-            <input type="text" name="client_name" class="form-control" placeholder="الاسم الكامل" required>
-            <input type="tel" name="client_phone" class="form-control" placeholder="رقم الجوال / واتساب" required>
-            <input type="date" name="visit_date" class="form-control" required>
-            <textarea name="notes" class="form-control" rows="2" placeholder="ملاحظات إضافية (اختياري)"></textarea>
-            <button type="submit" class="btn btn-primary" style="justify-content:center;">تأكيد طلب المعاينة ✅</button>
+        <button class="close-modal" onclick="closeModal('bookingModal')">&times;</button>
+        <h3 style="color: var(--primary); margin-bottom: 6px;">حجز موعد معاينة بأولوية</h3>
+        <p id="modalPropName" style="font-size:0.9rem; color:var(--accent); font-weight:700; margin-bottom:14px;"></p>
+        <form method="POST" action="{{ url_for('book_viewing') }}">
+            <input type="hidden" name="property_id" id="modalPropId">
+            <div class="form-group">
+                <label>الاسم بالكامل *</label>
+                <input type="text" name="client_name" required value="{{ current_user.full_name if current_user else '' }}">
+            </div>
+            <div class="form-group">
+                <label>رقم الموبايل (واتساب) *</label>
+                <input type="tel" name="client_phone" required placeholder="010xxxxxxxx" value="{{ current_user.phone if current_user else '' }}">
+            </div>
+            <div class="form-group">
+                <label>التاريخ المفضل للمعاينة</label>
+                <input type="date" name="preferred_date">
+            </div>
+            <div class="form-group">
+                <label>ملاحظات إضافية</label>
+                <textarea name="notes" rows="2" placeholder="مثال: متاح بعد الساعة 5 مساءً..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-accent" style="width:100%; justify-content:center; padding:12px;">
+                <i class="fa-solid fa-check-circle"></i> تأكيد الحجز وحفظ الأولوية
+            </button>
         </form>
     </div>
 </div>
 
+<!-- Client Auth Modal -->
+<div class="modal" id="authModal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeModal('authModal')">&times;</button>
+        <h3 style="color: var(--primary); margin-bottom: 14px;">بوابة العملاء (متابعة الحجوزات والمفضلة)</h3>
+
+        <form method="POST" action="{{ url_for('client_login') }}" style="margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid #e2e8f0;">
+            <h4 style="margin-bottom:10px; color:var(--primary-light);">تسجيل الدخول</h4>
+            <div class="form-group">
+                <label>رقم الموبايل</label>
+                <input type="tel" name="phone" required placeholder="010xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-accent" style="width:100%; justify-content:center;">دخول لحسابي</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('register') }}">
+            <h4 style="margin-bottom:10px; color:var(--success);">إنشاء حساب عميل جديد</h4>
+            <div class="form-group">
+                <label>الاسم بالكامل</label>
+                <input type="text" name="full_name" required>
+            </div>
+            <div class="form-group">
+                <label>رقم الموبايل</label>
+                <input type="tel" name="phone" required placeholder="010xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" name="password" required minlength="4">
+            </div>
+            <button type="submit" class="btn btn-wa" style="width:100%; justify-content:center;">إنشاء الحساب الآن</button>
+        </form>
+    </div>
+</div>
+
+<a href="https://wa.me/{{ whatsapp_number }}" target="_blank" class="wa-float" title="تواصل مباشر عبر واتساب">
+    <i class="fa-brands fa-whatsapp"></i>
+</a>
+
 <footer>
-    <p>جميع الحقوق محفوظة © 2026 <strong>منصة أملاك العقارية</strong></p>
-    <p style="margin-top:6px;">تصميم وتطوير: <strong>م. عبدالعزيز أمير (ENG Zizo Ameer)</strong></p>
+    <p>منصة أملاك العقارية &copy; 2026 — نظام متكامل لإدارة والتسويق العقاري</p>
 </footer>
 
 <script>
-    // ضبط قيم الفلاتر المختارة تلقائياً
-    const filterForm = document.getElementById('filterForm');
-    if (filterForm.dataset.purpose) {
-        document.getElementById('purposeSelect').value = filterForm.dataset.purpose;
-    }
-    if (filterForm.dataset.type) {
-        document.getElementById('typeSelect').value = filterForm.dataset.type;
-    }
-
-    function toggleTheme() {
-        const html = document.documentElement;
-        const btn = document.getElementById('themeBtn');
-        if (html.getAttribute('data-theme') === 'dark') {
-            html.removeAttribute('data-theme');
-            btn.textContent = '🌙 الوضع الليلي';
-        } else {
-            html.setAttribute('data-theme', 'dark');
-            btn.textContent = '☀️ الوضع النهاري';
-        }
+    function slideImg(btn, dir) {
+        const card = btn.closest('.card');
+        const imgs = JSON.parse(card.getAttribute('data-images'));
+        let idx = parseInt(card.getAttribute('data-idx') || '0');
+        idx = (idx + dir + imgs.length) % imgs.length;
+        card.setAttribute('data-idx', idx);
+        card.querySelector('.card-img').src = imgs[idx];
+        const counter = card.querySelector('.img-counter');
+        if (counter) counter.textContent = (idx + 1) + ' / ' + imgs.length;
     }
 
-    function openModalFromBtn(btn) {
-        const title = btn.getAttribute('data-title');
-        const city = btn.getAttribute('data-city');
-        const price = btn.getAttribute('data-price');
-        const desc = btn.getAttribute('data-desc');
-        const status = btn.getAttribute('data-status');
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-        document.getElementById('mTitle').textContent = title;
-        document.getElementById('mMeta').textContent = `📍 ${city} | السعر: ${price} | الحالة: ${status}`;
-        document.getElementById('mDesc').textContent = desc;
-        document.getElementById('mInputTitle').value = title;
-        document.getElementById('propModal').classList.add('active');
-    }
-
-    function closeModal() {
-        document.getElementById('propModal').classList.remove('active');
+    function openBookingModal(propId, propName, status) {
+        document.getElementById('modalPropId').value = propId;
+        document.getElementById('modalPropName').textContent = propName + (status === 'محجوز مبدئياً' ? ' (تسجيل في قائمة الانتظار)' : '');
+        openModal('bookingModal');
     }
 
     function calcMortgage() {
         const price = parseFloat(document.getElementById('calcPrice').value) || 0;
         const downPct = parseFloat(document.getElementById('calcDown').value) || 0;
         const years = parseFloat(document.getElementById('calcYears').value) || 1;
-        const rate = parseFloat(document.getElementById('calcRate').value) || 0;
-
-        const loan = price * (1 - downPct / 100);
-        const monthlyRate = (rate / 100) / 12;
-        const months = years * 12;
-
-        let monthly = 0;
-        if (monthlyRate > 0) {
-            monthly = (loan * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
-        } else {
-            monthly = loan / months;
-        }
-        document.getElementById('monthlyResult').textContent = Math.round(monthly).toLocaleString();
+        const downAmt = price * (downPct / 100);
+        const rem = Math.max(0, price - downAmt);
+        const monthly = rem / (years * 12);
+        document.getElementById('calcOutput').textContent =
+            `المقدم: ${Math.round(downAmt).toLocaleString()} ج.م | القسط الشهري التقريبي: ${Math.round(monthly).toLocaleString()} ج.م`;
     }
-    calcMortgage();
+
+    function compareProps() {
+        const s1 = document.getElementById('cmp1');
+        const s2 = document.getElementById('cmp2');
+        if (!s1 || !s2 || !s1.value || !s2.value) return;
+        const p1 = JSON.parse(s1.value);
+        const p2 = JSON.parse(s2.value);
+        document.getElementById('cmpResult').innerHTML = `
+            <strong>1) ${p1.title}:</strong> ${Number(p1.price).toLocaleString()} ج.م (${p1.area} م² - ${Number(p1.ppm).toLocaleString()} ج.م/م²)<br>
+            <strong>2) ${p2.title}:</strong> ${Number(p2.price).toLocaleString()} ج.م (${p2.area} م² - ${Number(p2.ppm).toLocaleString()} ج.م/م²)
+        `;
+    }
+    compareProps();
 </script>
 </body>
 </html>
