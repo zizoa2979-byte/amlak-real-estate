@@ -36,6 +36,17 @@
         th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; vertical-align: middle; }
         th { background: #f8fafc; color: #0f2942; }
         .login-box { max-width: 400px; margin: 80px auto; background: #fff; padding: 30px; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+        .live-badge {
+            display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem;
+            background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-weight: 700;
+        }
+        .live-dot { width: 8px; height: 8px; background: #16a34a; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .toast-alert {
+            position: fixed; bottom: 20px; right: 20px; background: #0f2942; color: #fff;
+            padding: 14px 20px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            font-weight: 700; z-index: 3000; display: none; border-right: 5px solid #10b981;
+        }
     </style>
 </head>
 <body>
@@ -64,16 +75,21 @@
 </div>
 
 {% else %}
+<div class="toast-alert" id="liveToast">🔔 وصل طلب معاينة أو عميل جديد الآن!</div>
+
 <nav class="navbar">
     <span><i class="fa-solid fa-shield-halved"></i> لوحة تحكم أملاك CRM</span>
-    <span style="font-size:0.82rem; background:rgba(255,255,255,0.15); padding:4px 12px; border-radius:20px;">{{ db_mode }}</span>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <span class="live-badge"><span class="live-dot"></span> تحديث تلقائي حي</span>
+        <span style="font-size:0.82rem; background:rgba(255,255,255,0.15); padding:4px 12px; border-radius:20px;">{{ db_mode }}</span>
+    </div>
     <div style="display:flex; gap:12px;">
         <a href="{{ url_for('index') }}">معاينة الموقع</a>
         <a href="{{ url_for('admin_logout') }}" style="color:#fca5a5;">تسجيل خروج</a>
     </div>
 </nav>
 
-<div class="container">
+<div class="container" id="adminRoot" data-inq-count="{{ inquiries|length }}" data-user-count="{{ users|length }}">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for cat, msg in messages %}
@@ -84,12 +100,12 @@
 
     <!-- Stats -->
     <div class="stats-grid">
-        <div class="stat-box"><span>إجمالي العقارات</span><strong>{{ stats.total_props }}</strong></div>
-        <div class="stat-box" style="border-color:#059669;"><span>عقارات متاحة</span><strong>{{ stats.available_props }}</strong></div>
-        <div class="stat-box" style="border-color:#d97706;"><span>محجوز مبدئياً (تفاوض)</span><strong>{{ stats.reserved_props }}</strong></div>
-        <div class="stat-box" style="border-color:#dc2626;"><span>تم البيع / التأجير</span><strong>{{ stats.sold_props }}</strong></div>
-        <div class="stat-box" style="border-color:#2563eb;"><span>طلبات معاينة معلقة</span><strong>{{ stats.pending_inquiries }}</strong></div>
-        <div class="stat-box" style="border-color:#7c3aed;"><span>العملاء المسجلين</span><strong>{{ stats.total_users }}</strong></div>
+        <div class="stat-box"><span>إجمالي العقارات</span><strong id="statTotalProps">{{ stats.total_props }}</strong></div>
+        <div class="stat-box" style="border-color:#059669;"><span>عقارات متاحة</span><strong id="statAvailProps">{{ stats.available_props }}</strong></div>
+        <div class="stat-box" style="border-color:#d97706;"><span>محجوز مبدئياً (تفاوض)</span><strong id="statResProps">{{ stats.reserved_props }}</strong></div>
+        <div class="stat-box" style="border-color:#dc2626;"><span>تم البيع / التأجير</span><strong id="statSoldProps">{{ stats.sold_props }}</strong></div>
+        <div class="stat-box" style="border-color:#2563eb;"><span>طلبات معاينة معلقة</span><strong id="statPendingInq">{{ stats.pending_inquiries }}</strong></div>
+        <div class="stat-box" style="border-color:#7c3aed;"><span>العملاء المسجلين</span><strong id="statTotalUsers">{{ stats.total_users }}</strong></div>
     </div>
 
     <!-- Excel Export Backup -->
@@ -100,6 +116,101 @@
             <a href="{{ url_for('export_excel_csv', target='properties') }}" class="btn btn-excel"><i class="fa-solid fa-download"></i> تصدير إكسيل العقارات</a>
             <a href="{{ url_for('export_excel_csv', target='inquiries') }}" class="btn btn-excel"><i class="fa-solid fa-download"></i> تصدير إكسيل طلبات المعاينة</a>
             <a href="{{ url_for('export_excel_csv', target='users') }}" class="btn btn-excel"><i class="fa-solid fa-download"></i> تصدير إكسيل العملاء المسجلين</a>
+        </div>
+    </div>
+
+    <!-- Inquiries Queue Management -->
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+            <h3 style="margin-bottom:0;"><i class="fa-solid fa-list-ol"></i> إدارة طلبات المعاينة ونظام الأولوية والموافقة</h3>
+            <span style="font-size:0.8rem; color:#64748b;" id="lastSyncText">يتم التحديث تلقائياً كل 10 ثواني...</span>
+        </div>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>الأولوية</th>
+                        <th>العقار</th>
+                        <th>العميل</th>
+                        <th>الهاتف</th>
+                        <th>الموعد والملاحظات</th>
+                        <th>الحالة</th>
+                        <th>قرار الإدارة (واتساب فوري)</th>
+                    </tr>
+                </thead>
+                <tbody id="inquiriesTbody">
+                    {% for inq in inquiries %}
+                    <tr>
+                        <td><strong style="color:#d97706; font-size:1rem;">#{{ inq.priority_num }}</strong></td>
+                        <td><strong>{{ inq.property_code }}</strong><br><small>{{ inq.property_title }}</small></td>
+                        <td>{{ inq.client_name }}</td>
+                        <td>{{ inq.client_phone }}</td>
+                        <td><strong>{{ inq.preferred_date or '-' }}</strong><br><small style="color:#64748b;">{{ inq.notes }}</small></td>
+                        <td><strong>{{ inq.status }}</strong></td>
+                        <td>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                <form method="POST" action="/admin/inquiry-action/{{ inq.id }}" target="_blank">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="btn btn-success" title="موافقة + حجز مبدئي للعقار + فتح واتساب">
+                                        <i class="fa-brands fa-whatsapp"></i> موافقة
+                                    </button>
+                                </form>
+                                <form method="POST" action="/admin/inquiry-action/{{ inq.id }}" target="_blank">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" class="btn btn-accent" title="اعتذار عبر واتساب">
+                                        <i class="fa-solid fa-xmark"></i> اعتذار
+                                    </button>
+                                </form>
+                                <form method="POST" action="/admin/inquiry-action/{{ inq.id }}">
+                                    <input type="hidden" name="action" value="delete">
+                                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" style="text-align:center;">لا توجد طلبات معاينة حتى الآن.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Registered Clients Table -->
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+            <h3 style="margin-bottom:0;"><i class="fa-solid fa-users"></i> قائمة العملاء المسجلين (<span id="usersCountBadge">{{ users|length }}</span>)</h3>
+            <a href="{{ url_for('export_excel_csv', target='users') }}" class="btn btn-excel"><i class="fa-solid fa-file-excel"></i> تحميل Excel</a>
+        </div>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>اسم العميل</th>
+                        <th>رقم الهاتف</th>
+                        <th>واتساب مباشر</th>
+                        <th>تاريخ التسجيل</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTbody">
+                    {% for u in users %}
+                    <tr>
+                        <td><strong>#{{ u.id }}</strong></td>
+                        <td>{{ u.full_name }}</td>
+                        <td dir="ltr" style="text-align:right;">{{ u.phone }}</td>
+                        <td>
+                            <a href="https://wa.me/2{{ u.phone if u.phone.startswith('01') else u.phone }}" target="_blank" class="btn btn-success" style="padding:4px 10px; font-size:0.78rem;">
+                                <i class="fa-brands fa-whatsapp"></i> مراسلة
+                            </a>
+                        </td>
+                        <td>{{ u.created_at or '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align:center;">لا يوجد عملاء مسجلين حتى الآن.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -142,60 +253,6 @@
             </div>
             <button type="submit" class="btn btn-accent" style="padding:11px 22px;"><i class="fa-solid fa-upload"></i> نشر العقار الآن</button>
         </form>
-    </div>
-
-    <!-- Inquiries Queue Management -->
-    <div class="card">
-        <h3><i class="fa-solid fa-list-ol"></i> إدارة طلبات المعاينة ونظام الأولوية والموافقة</h3>
-        <div style="overflow-x:auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>الأولوية</th>
-                        <th>العقار</th>
-                        <th>العميل</th>
-                        <th>الهاتف</th>
-                        <th>الموعد والملاحظات</th>
-                        <th>الحالة</th>
-                        <th>قرار الإدارة (واتساب فوري)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for inq in inquiries %}
-                    <tr>
-                        <td><strong style="color:#d97706; font-size:1rem;">#{{ inq.priority_num }}</strong></td>
-                        <td><strong>{{ inq.property_code }}</strong><br><small>{{ inq.property_title }}</small></td>
-                        <td>{{ inq.client_name }}</td>
-                        <td>{{ inq.client_phone }}</td>
-                        <td>{{ inq.preferred_date or '-' }}<br><small style="color:#64748b;">{{ inq.notes }}</small></td>
-                        <td><strong>{{ inq.status }}</strong></td>
-                        <td>
-                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                <form method="POST" action="{{ url_for('inquiry_action', inq_id=inq.id) }}" target="_blank">
-                                    <input type="hidden" name="action" value="approve">
-                                    <button type="submit" class="btn btn-success" title="موافقة + حجز مبدئي للعقار + فتح واتساب">
-                                        <i class="fa-brands fa-whatsapp"></i> موافقة
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ url_for('inquiry_action', inq_id=inq.id) }}" target="_blank">
-                                    <input type="hidden" name="action" value="reject">
-                                    <button type="submit" class="btn btn-accent" title="اعتذار عبر واتساب">
-                                        <i class="fa-solid fa-xmark"></i> اعتذار
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ url_for('inquiry_action', inq_id=inq.id) }}">
-                                    <input type="hidden" name="action" value="delete">
-                                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="7" style="text-align:center;">لا توجد طلبات معاينة حتى الآن.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
     </div>
 
     <!-- Properties Management -->
@@ -243,6 +300,115 @@
         </div>
     </div>
 </div>
+
+<script>
+    const rootEl = document.getElementById('adminRoot');
+    let lastInqCount = parseInt(rootEl.getAttribute('data-inq-count') || '0', 10);
+    let lastUserCount = parseInt(rootEl.getAttribute('data-user-count') || '0', 10);
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('liveToast');
+        if (!t) return;
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 5000);
+    }
+
+    async function fetchLiveAdminData() {
+        try {
+            const res = await fetch('/admin/live-data');
+            if (!res.ok) return;
+            const data = await res.json();
+
+            document.getElementById('statTotalProps').textContent = data.stats.total_props;
+            document.getElementById('statAvailProps').textContent = data.stats.available_props;
+            document.getElementById('statResProps').textContent = data.stats.reserved_props;
+            document.getElementById('statSoldProps').textContent = data.stats.sold_props;
+            document.getElementById('statPendingInq').textContent = data.stats.pending_inquiries;
+            document.getElementById('statTotalUsers').textContent = data.stats.total_users;
+            document.getElementById('usersCountBadge').textContent = data.users.length;
+
+            if (data.inquiries.length > lastInqCount) {
+                showToast('🔔 وصل طلب معاينة جديد الآن!');
+            } else if (data.users.length > lastUserCount) {
+                showToast('👤 عميل جديد سجّل حساب على المنصة الآن!');
+            }
+            lastInqCount = data.inquiries.length;
+            lastUserCount = data.users.length;
+
+            const inqBody = document.getElementById('inquiriesTbody');
+            if (data.inquiries.length === 0) {
+                inqBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد طلبات معاينة حتى الآن.</td></tr>';
+            } else {
+                inqBody.innerHTML = data.inquiries.map(inq => `
+                    <tr>
+                        <td><strong style="color:#d97706; font-size:1rem;">#${inq.priority_num}</strong></td>
+                        <td><strong>${escapeHtml(inq.property_code)}</strong><br><small>${escapeHtml(inq.property_title)}</small></td>
+                        <td>${escapeHtml(inq.client_name)}</td>
+                        <td>${escapeHtml(inq.client_phone)}</td>
+                        <td><strong>${escapeHtml(inq.preferred_date || '-')}</strong><br><small style="color:#64748b;">${escapeHtml(inq.notes || '')}</small></td>
+                        <td><strong>${escapeHtml(inq.status)}</strong></td>
+                        <td>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                <form method="POST" action="/admin/inquiry-action/${inq.id}" target="_blank">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="btn btn-success"><i class="fa-brands fa-whatsapp"></i> موافقة</button>
+                                </form>
+                                <form method="POST" action="/admin/inquiry-action/${inq.id}" target="_blank">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" class="btn btn-accent"><i class="fa-solid fa-xmark"></i> اعتذار</button>
+                                </form>
+                                <form method="POST" action="/admin/inquiry-action/${inq.id}">
+                                    <input type="hidden" name="action" value="delete">
+                                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            const usersBody = document.getElementById('usersTbody');
+            if (data.users.length === 0) {
+                usersBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا يوجد عملاء مسجلين حتى الآن.</td></tr>';
+            } else {
+                usersBody.innerHTML = data.users.map(u => {
+                    const cleanPhone = String(u.phone || '').replace(/\D/g, '');
+                    const waPhone = cleanPhone.startsWith('01') ? '2' + cleanPhone : cleanPhone;
+                    return `
+                        <tr>
+                            <td><strong>#${u.id}</strong></td>
+                            <td>${escapeHtml(u.full_name)}</td>
+                            <td dir="ltr" style="text-align:right;">${escapeHtml(u.phone)}</td>
+                            <td>
+                                <a href="https://wa.me/${waPhone}" target="_blank" class="btn btn-success" style="padding:4px 10px; font-size:0.78rem;">
+                                    <i class="fa-brands fa-whatsapp"></i> مراسلة
+                                </a>
+                            </td>
+                            <td>${escapeHtml(u.created_at || '-')}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            const now = new Date();
+            document.getElementById('lastSyncText').textContent = 'آخر تحديث تلقائي: ' + now.toLocaleTimeString('ar-EG');
+        } catch (err) {
+            console.error('Live sync error:', err);
+        }
+    }
+
+    setInterval(fetchLiveAdminData, 10000);
+</script>
 {% endif %}
 
 </body>

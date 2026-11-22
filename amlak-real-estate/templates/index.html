@@ -221,7 +221,7 @@
             </a>
             <a href="{{ url_for('client_logout') }}" class="btn btn-outline">خروج</a>
         {% else %}
-            <button class="btn btn-accent" onclick="openModal('authModal')">
+            <button type="button" class="btn btn-accent" onclick="openModal('authModal')">
                 <i class="fa-solid fa-user"></i> دخول / حساب جديد
             </button>
         {% endif %}
@@ -242,7 +242,7 @@
                     <span>{{ message }}</span>
                     {% if request.args.get('booked') == '1' and session.get('last_wa_link') %}
                         <a href="{{ session.get('last_wa_link') }}" target="_blank" class="btn btn-wa">
-                            <i class="fa-brands fa-whatsapp"></i> تأكيد الموعد الآن عبر واتساب
+                            <i class="fa-brands fa-whatsapp"></i> إرسال تفاصيل الحجز على واتساب
                         </a>
                     {% endif %}
                 </div>
@@ -345,9 +345,13 @@
 
                 <div class="card-actions">
                     {% if prop.status == 'مباع' or prop.status == 'مؤجر' %}
-                        <button class="btn" style="background:#cbd5e1; color:#475569; cursor:not-allowed;" disabled>غير متاح</button>
+                        <button type="button" class="btn" style="background:#cbd5e1; color:#475569; cursor:not-allowed;" disabled>غير متاح</button>
                     {% else %}
-                        <button class="btn btn-accent" onclick="openBookingModal('{{ prop.id }}', '{{ prop.code }} - {{ prop.title }}', '{{ prop.status }}')">
+                        <button type="button" class="btn btn-accent"
+                            data-id="{{ prop.id }}"
+                            data-name="{{ prop.code }} - {{ prop.title }}"
+                            data-status="{{ prop.status }}"
+                            onclick="openBookingModalFromBtn(this)">
                             <i class="fa-solid fa-calendar-check"></i>
                             {{ 'قائمة انتظار' if prop.status == 'محجوز مبدئياً' else 'حجز معاينة' }}
                         </button>
@@ -411,9 +415,9 @@
 </div>
 
 <!-- Booking Modal -->
-<div class="modal" id="bookingModal">
+<div class="modal" id="bookingModal" onclick="if(event.target === this) closeModal('bookingModal')">
     <div class="modal-content">
-        <button class="close-modal" onclick="closeModal('bookingModal')">&times;</button>
+        <button type="button" class="close-modal" onclick="closeModal('bookingModal')">&times;</button>
         <h3 style="color: var(--primary); margin-bottom: 6px;">حجز موعد معاينة بأولوية</h3>
         <p id="modalPropName" style="font-size:0.9rem; color:var(--accent); font-weight:700; margin-bottom:14px;"></p>
         <form method="POST" action="{{ url_for('book_viewing') }}">
@@ -427,14 +431,21 @@
                 <input type="tel" name="client_phone" required placeholder="010xxxxxxxx" value="{{ current_user.phone if current_user else '' }}">
             </div>
             <div class="form-group">
-                <label>التاريخ المفضل للمعاينة</label>
-                <input type="date" name="preferred_date">
+                <label>اختار يوم المعاينة *</label>
+                <input type="date" name="booking_day" id="bookingDayInput" min="{{ today_date or '2026-01-01' }}" data-today="{{ today_date or '' }}" required onchange="checkAvailableSlots()">
+            </div>
+            <div class="form-group">
+                <label>اختار الفترة المناسبة (فترتان يومياً بفاصل 3 ساعات) *</label>
+                <select name="booking_slot" id="bookingSlotSelect" required>
+                    <option value="">-- اختار اليوم أولاً لعرض الفترات المتاحة --</option>
+                </select>
+                <small id="slotStatusHint" style="display:block; margin-top:6px; color:#64748b; font-weight:700;"></small>
             </div>
             <div class="form-group">
                 <label>ملاحظات إضافية</label>
-                <textarea name="notes" rows="2" placeholder="مثال: متاح بعد الساعة 5 مساءً..."></textarea>
+                <textarea name="notes" rows="2" placeholder="أي تفاصيل إضافية تود إضافتها..."></textarea>
             </div>
-            <button type="submit" class="btn btn-accent" style="width:100%; justify-content:center; padding:12px;">
+            <button type="submit" id="submitBookingBtn" class="btn btn-accent" style="width:100%; justify-content:center; padding:12px;">
                 <i class="fa-solid fa-check-circle"></i> تأكيد الحجز وحفظ الأولوية
             </button>
         </form>
@@ -442,9 +453,9 @@
 </div>
 
 <!-- Client Auth Modal -->
-<div class="modal" id="authModal">
+<div class="modal" id="authModal" onclick="if(event.target === this) closeModal('authModal')">
     <div class="modal-content">
-        <button class="close-modal" onclick="closeModal('authModal')">&times;</button>
+        <button type="button" class="close-modal" onclick="closeModal('authModal')">&times;</button>
         <h3 style="color: var(--primary); margin-bottom: 14px;">بوابة العملاء (متابعة الحجوزات والمفضلة)</h3>
 
         <form method="POST" action="{{ url_for('client_login') }}" style="margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid #e2e8f0;">
@@ -487,25 +498,116 @@
     <p>منصة أملاك العقارية &copy; 2026 — نظام متكامل لإدارة والتسويق العقاري</p>
 </footer>
 
+<script id="slotsData" type="application/json">{{ (viewing_slots or ["الفترة الأولى: من 10:00 صباحاً إلى 12:00 ظهراً", "الفترة الثانية: من 3:00 عصراً إلى 5:00 مساءً"]) | tojson }}</script>
+
 <script>
+    const ALL_VIEWING_SLOTS = JSON.parse(document.getElementById('slotsData').textContent || '[]');
+
     function slideImg(btn, dir) {
         const card = btn.closest('.card');
-        const imgs = JSON.parse(card.getAttribute('data-images'));
-        let idx = parseInt(card.getAttribute('data-idx') || '0');
+        if (!card) return;
+        const imgs = JSON.parse(card.getAttribute('data-images') || '[]');
+        if (!imgs.length) return;
+        let idx = parseInt(card.getAttribute('data-idx') || '0', 10);
         idx = (idx + dir + imgs.length) % imgs.length;
         card.setAttribute('data-idx', idx);
-        card.querySelector('.card-img').src = imgs[idx];
+        const imgEl = card.querySelector('.card-img');
+        if (imgEl) imgEl.src = imgs[idx];
         const counter = card.querySelector('.img-counter');
         if (counter) counter.textContent = (idx + 1) + ' / ' + imgs.length;
     }
 
-    function openModal(id) { document.getElementById(id).classList.add('open'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function openModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('open');
+    }
 
-    function openBookingModal(propId, propName, status) {
+    function closeModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('open');
+    }
+
+    function openBookingModalFromBtn(btn) {
+        const propId = btn.getAttribute('data-id');
+        const propName = btn.getAttribute('data-name');
+        const status = btn.getAttribute('data-status');
         document.getElementById('modalPropId').value = propId;
-        document.getElementById('modalPropName').textContent = propName + (status === 'محجوز مبدئياً' ? ' (تسجيل في قائمة الانتظار)' : '');
+        document.getElementById('modalPropName').textContent =
+            propName + (status === 'محجوز مبدئياً' ? ' (تسجيل في قائمة الانتظار)' : '');
+
+        const dayInput = document.getElementById('bookingDayInput');
+        if (!dayInput.value) {
+            const todayStr = dayInput.getAttribute('data-today') || new Date().toISOString().split('T')[0];
+            dayInput.value = todayStr;
+        }
         openModal('bookingModal');
+        checkAvailableSlots();
+    }
+
+    async function checkAvailableSlots() {
+        const dayVal = document.getElementById('bookingDayInput').value;
+        const selectEl = document.getElementById('bookingSlotSelect');
+        const hintEl = document.getElementById('slotStatusHint');
+        const submitBtn = document.getElementById('submitBookingBtn');
+
+        if (!dayVal) {
+            selectEl.innerHTML = '<option value="">-- اختار اليوم أولاً --</option>';
+            hintEl.textContent = '';
+            return;
+        }
+
+        selectEl.innerHTML = '<option value="">جاري فحص المواعيد المتاحة...</option>';
+        try {
+            const res = await fetch(`/api/booked-slots?date=${encodeURIComponent(dayVal)}&_t=${Date.now()}`);
+            if (!res.ok) throw new Error('Network error');
+            const data = await res.json();
+            const booked = data.booked_slots || [];
+
+            if (data.is_full) {
+                selectEl.innerHTML = '<option value="">❌ هذا اليوم مكتمل الحجوزات (فترتان محجوزتان)</option>';
+                hintEl.style.color = '#dc2626';
+                hintEl.textContent = 'تم حجز الفترتين في هذا اليوم بالكامل، يرجى اختيار يوم آخر.';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.6';
+                return;
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            selectEl.innerHTML = '';
+
+            let availableCount = 0;
+            ALL_VIEWING_SLOTS.forEach(slot => {
+                const opt = document.createElement('option');
+                if (booked.includes(slot)) {
+                    opt.value = '';
+                    opt.disabled = true;
+                    opt.textContent = `${slot} (محجوز ❌)`;
+                } else {
+                    opt.value = slot;
+                    opt.textContent = `${slot} (متاح ✅)`;
+                    availableCount++;
+                }
+                selectEl.appendChild(opt);
+            });
+
+            const firstValid = Array.from(selectEl.options).find(o => !o.disabled && o.value);
+            if (firstValid) selectEl.value = firstValid.value;
+
+            if (availableCount === 2) {
+                hintEl.style.color = '#059669';
+                hintEl.textContent = 'متاح الفترتان في هذا اليوم (يوجد 3 ساعات راحة بين الفترتين).';
+            } else if (availableCount === 1) {
+                hintEl.style.color = '#d97706';
+                hintEl.textContent = 'متبقي فترة واحدة فقط متاحة في هذا اليوم!';
+            }
+        } catch (e) {
+            selectEl.innerHTML = ALL_VIEWING_SLOTS.map(s => `<option value="${s}">${s}</option>`).join('');
+            hintEl.style.color = '#64748b';
+            hintEl.textContent = 'اختر الفترة المناسبة للمعاينة.';
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+        }
     }
 
     function calcMortgage() {
@@ -520,15 +622,19 @@
     }
 
     function compareProps() {
-        const s1 = document.getElementById('cmp1');
-        const s2 = document.getElementById('cmp2');
-        if (!s1 || !s2 || !s1.value || !s2.value) return;
-        const p1 = JSON.parse(s1.value);
-        const p2 = JSON.parse(s2.value);
-        document.getElementById('cmpResult').innerHTML = `
-            <strong>1) ${p1.title}:</strong> ${Number(p1.price).toLocaleString()} ج.م (${p1.area} م² - ${Number(p1.ppm).toLocaleString()} ج.م/م²)<br>
-            <strong>2) ${p2.title}:</strong> ${Number(p2.price).toLocaleString()} ج.م (${p2.area} م² - ${Number(p2.ppm).toLocaleString()} ج.م/م²)
-        `;
+        try {
+            const s1 = document.getElementById('cmp1');
+            const s2 = document.getElementById('cmp2');
+            if (!s1 || !s2 || !s1.value || !s2.value) return;
+            const p1 = JSON.parse(s1.value);
+            const p2 = JSON.parse(s2.value);
+            document.getElementById('cmpResult').innerHTML = `
+                <strong>1) ${p1.title}:</strong> ${Number(p1.price).toLocaleString()} ج.م (${p1.area} م² - ${Number(p1.ppm).toLocaleString()} ج.م/م²)<br>
+                <strong>2) ${p2.title}:</strong> ${Number(p2.price).toLocaleString()} ج.م (${p2.area} م² - ${Number(p2.ppm).toLocaleString()} ج.م/م²)
+            `;
+        } catch (e) {
+            console.warn('Compare skipped:', e);
+        }
     }
     compareProps();
 </script>

@@ -7,7 +7,7 @@ import sqlite3
 from datetime import datetime
 from functools import wraps
 from urllib.parse import quote
-from flask import Flask, render_template, request, redirect, url_for, session, Response, flash
+from flask import Flask, render_template, request, redirect, url_for, session, Response, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
 try:
@@ -29,6 +29,12 @@ SQLITE_PATH = '/tmp/amlak_v2.db' if os.environ.get('VERCEL') else 'amlak_v2.db'
 ADMIN_USER = os.environ.get('ADMIN_USER', 'admin').strip()
 ADMIN_PASS = os.environ.get('ADMIN_PASS', 'Zizo@Amlak2026').strip()
 WHATSAPP_NUMBER = "201025090134"
+
+# الفترتان اليوميتين للمعاينة (بينهما 3 ساعات راحة من 12 ظهراً إلى 3 عصراً)
+VIEWING_SLOTS = [
+    "الفترة الأولى: من 10:00 صباحاً إلى 12:00 ظهراً",
+    "الفترة الثانية: من 3:00 عصراً إلى 5:00 مساءً"
+]
 
 
 class DBWrapper:
@@ -122,7 +128,6 @@ def init_db():
         )
     """)
 
-    # Seed initial properties if table is empty
     count_row = db.fetchone("SELECT COUNT(*) as cnt FROM properties")
     if count_row and count_row['cnt'] == 0:
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -250,7 +255,6 @@ def index():
     query += " ORDER BY id DESC"
     properties = [parse_property_images(p) for p in db.fetchall(query, tuple(params))]
 
-    # Count active inquiries per property to show demand badge
     inq_counts = {}
     for row in db.fetchall("SELECT property_id, COUNT(*) as cnt FROM inquiries WHERE status != 'مرفوض' GROUP BY property_id"):
         inq_counts[row['property_id']] = row['cnt']
@@ -273,6 +277,8 @@ def index():
         current_user=current_user,
         user_favorites=user_favorites,
         whatsapp_number=WHATSAPP_NUMBER,
+        viewing_slots=VIEWING_SLOTS,
+        today_date=datetime.now().strftime("%Y-%m-%d"),
         db_mode="PostgreSQL (Supabase)" if USE_PG else "Local SQLite",
         filters={
             'purpose': purpose,
@@ -282,6 +288,32 @@ def index():
             'q': search_q
         }
     )
+
+
+# ==================== API FOR CHECKING DAILY SLOTS ====================
+
+@app.route('/api/booked-slots')
+def api_booked_slots():
+    date_str = request.args.get('date', '').strip()
+    if not date_str:
+        return jsonify({'booked_slots': [], 'is_full': False})
+
+    db = DBWrapper()
+    rows = db.fetchall(
+        "SELECT preferred_date FROM inquiries WHERE preferred_date LIKE ? AND status != 'مرفوض'",
+        (f"{date_str}%",)
+    )
+    db.close()
+
+    booked_slots = []
+    for r in rows:
+        pd = r.get('preferred_date') or ''
+        for slot in VIEWING_SLOTS:
+            if slot in pd and slot not in booked_slots:
+                booked_slots.append(slot)
+
+    is_full = len(booked_slots) >= len(VIEWING_SLOTS) or len(rows) >= 2
+    return jsonify({'booked_slots': booked_slots, 'is_full': is_full})
 
 
 # ==================== CLIENT AUTH & ACCOUNT ====================
@@ -410,15 +442,20 @@ def my_account():
     )
 
 
-# ==================== BOOKING / INQUIRIES WITH PRIORITY QUEUE ====================
+# ==================== BOOKING / INQUIRIES (MAX 2 SLOTS PER DAY) ====================
 
 @app.route('/book-viewing', methods=['POST'])
 def book_viewing():
     prop_id = request.form.get('property_id')
     client_name = request.form.get('client_name', '').strip()
     client_phone = request.form.get('client_phone', '').strip()
-    preferred_date = request.form.get('preferred_date', '').strip()
+    booking_day = request.form.get('booking_day', '').strip()
+    booking_slot = request.form.get('booking_slot', '').strip()
     notes = request.form.get('notes', '').strip()
+
+    if not booking_day or not booking_slot:
+        flash("يرجى اختيار اليوم والفترة المناسبة للمعاينة.", "danger")
+        return redirect(url_for('index'))
 
     db = DBWrapper()
     prop = db.fetchone("SELECT * FROM properties WHERE id = ?", (prop_id,))
@@ -432,7 +469,24 @@ def book_viewing():
         flash("عذراً، هذا العقار تم بيعه بالفعل.", "danger")
         return redirect(url_for('index'))
 
-    # Calculate priority order for this specific property
+    # التحقق من أن اليوم لا يتعدى عميلين وأن الفترة المختارة غير محجوزة
+    day_bookings = db.fetchall(
+        "SELECT preferred_date FROM inquiries WHERE preferred_date LIKE ? AND status != 'مرفوض'",
+        (f"{booking_day}%",)
+    )
+    if len(day_bookings) >= 2:
+        db.close()
+        flash("عذراً، هذا اليوم مكتمل الحجوزات (الحد الأقصى فترتان في اليوم). يرجى اختيار يوم آخر.", "warning")
+        return redirect(url_for('index'))
+
+    for b in day_bookings:
+        if booking_slot in (b.get('preferred_date') or ''):
+            db.close()
+            flash("عذراً، هذه الفترة تم حجزها للتو. يرجى اختيار الفترة الأخرى أو يوم آخر.", "warning")
+            return redirect(url_for('index'))
+
+    preferred_date = f"{booking_day} | {booking_slot}"
+
     existing_cnt = db.fetchone(
         "SELECT COUNT(*) as cnt FROM inquiries WHERE property_id = ? AND status != 'مرفوض'",
         (prop['id'],)
@@ -462,17 +516,17 @@ def book_viewing():
         f"• العقار: {prop['title']}\n"
         f"• الاسم: {client_name}\n"
         f"• الهاتف: {client_phone}\n"
-        f"• الموعد المفضل: {preferred_date or 'أقرب وقت'}\n"
+        f"• الموعد المختار: {preferred_date}\n"
         f"• ترتيب الأولوية: #{priority_num}"
     )
     wa_link = f"https://wa.me/{WHATSAPP_NUMBER}?text={quote(wa_msg)}"
     session['last_wa_link'] = wa_link
     session['last_priority'] = priority_num
-    flash(f"تم تسجيل طلبك بنجاح! ترتيبك في أولوية المعاينة لهذا العقار هو #{priority_num}.", "success")
+    flash(f"تم تسجيل طلبك بنجاح لموعد ({preferred_date})! ترتيبك في الأولوية هو #{priority_num}.", "success")
     return redirect(url_for('index', booked='1'))
 
 
-# ==================== ADMIN PANEL (SECURED) ====================
+# ==================== ADMIN PANEL (SECURED + LIVE AUTO REFRESH) ====================
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -497,12 +551,10 @@ def admin_logout():
     return redirect(url_for('index'))
 
 
-@app.route('/admin')
-@admin_required
-def admin_dashboard():
+def get_admin_data():
     db = DBWrapper()
     properties = [parse_property_images(p) for p in db.fetchall("SELECT * FROM properties ORDER BY id DESC")]
-    inquiries = db.fetchall("SELECT * FROM inquiries ORDER BY property_id DESC, priority_num ASC, id ASC")
+    inquiries = db.fetchall("SELECT * FROM inquiries ORDER BY id DESC")
     users = db.fetchall("SELECT id, full_name, phone, created_at FROM users ORDER BY id DESC")
 
     stats = {
@@ -513,8 +565,14 @@ def admin_dashboard():
         'pending_inquiries': sum(1 for i in inquiries if 'قيد المراجعة' in i['status'] or 'انتظار' in i['status']),
         'total_users': len(users)
     }
-
     db.close()
+    return properties, inquiries, users, stats
+
+
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    properties, inquiries, users, stats = get_admin_data()
     return render_template(
         'admin.html',
         login_mode=False,
@@ -525,6 +583,17 @@ def admin_dashboard():
         whatsapp_number=WHATSAPP_NUMBER,
         db_mode="PostgreSQL (Supabase)" if USE_PG else "SQLite المؤقت (تحذير: تأكد من ربط Supabase)"
     )
+
+
+@app.route('/admin/live-data')
+@admin_required
+def admin_live_data():
+    _, inquiries, users, stats = get_admin_data()
+    return jsonify({
+        'stats': stats,
+        'inquiries': inquiries,
+        'users': users
+    })
 
 
 def image_file_to_data_uri(file_storage):
@@ -555,7 +624,6 @@ def add_property():
     description = request.form.get('description', '').strip()
     features = request.form.get('features', '').strip()
 
-    # Handle multiple uploaded files + multiple URLs
     uploaded_imgs = []
     for f in request.files.getlist('image_files'):
         uri = image_file_to_data_uri(f)
@@ -623,7 +691,6 @@ def inquiry_action(inq_id):
         db.close()
         return redirect(url_for('admin_dashboard'))
 
-    # Format Egyptian phone to international for WhatsApp
     raw_phone = ''.join(filter(str.isdigit, inq['client_phone']))
     if raw_phone.startswith('01'):
         wa_client_phone = '2' + raw_phone
@@ -634,18 +701,19 @@ def inquiry_action(inq_id):
 
     if action == 'approve':
         db.execute("UPDATE inquiries SET status = 'تمت الموافقة' WHERE id = ?", (inq_id,))
-        # Automatically lock property as reserved so no one else takes it during negotiation
         db.execute("UPDATE properties SET status = 'محجوز مبدئياً' WHERE id = ? AND status = 'متاح'", (inq['property_id'],))
         db.commit()
         db.close()
+        chosen_slot = inq.get('preferred_date') or 'الموعد المسجل'
         msg = (
             f"أهلاً أستاذ/ة {inq['client_name']} 👋\n"
             f"مع حضرتك إدارة *منصة أملاك العقارية*.\n"
             f"يسعدنا إبلاغك بـ *الموافقة على طلب المعاينة* الخاص بالعقار:\n"
             f"• كود العقار: {inq['property_code']}\n"
             f"• العقار: {inq['property_title']}\n"
+            f"• الموعد المحجوز: {chosen_slot}\n"
             f"• ترتيب أولويتك: #{inq['priority_num']}\n"
-            f"برجاء تأكيد الموعد المناسب لحضرتك لإتمام المعاينة."
+            f"سيتم التواصل معك قبل الميعاد لتأكيد التفاصيل وتنسيق المعاينة."
         )
         return redirect(f"https://wa.me/{wa_client_phone}?text={quote(msg)}")
 
@@ -678,7 +746,6 @@ def inquiry_action(inq_id):
 def export_excel_csv(target):
     db = DBWrapper()
     output = io.StringIO()
-    # Add UTF-8 BOM so Microsoft Excel opens Arabic text cleanly without garbled characters
     output.write('\ufeff')
     writer = csv.writer(output)
 
@@ -691,13 +758,13 @@ def export_excel_csv(target):
     elif target == 'inquiries':
         writer.writerow(['ID', 'الأولوية', 'كود العقار', 'اسم العقار', 'اسم العميل', 'رقم الهاتف', 'الموعد المفضل', 'حالة الطلب', 'ملاحظات', 'وقت التسجيل'])
         for r in db.fetchall("SELECT * FROM inquiries ORDER BY id DESC"):
-            writer.writerow([r['id'], f"#{r['priority_num']}", r['property_code'], r['property_title'], r['client_name'], r['client_phone'], r['preferred_date'], r['status'], r['notes'], r['created_at']])
+            writer.writerow([r['id'], f"#{r['priority_num']}", r['property_code'], r['property_title'], r['client_name'], f"\t{r['client_phone']}", r['preferred_date'], r['status'], r['notes'], f"\t{r['created_at']}"])
         filename = f"amlak_inquiries_{datetime.now().strftime('%Y%m%d')}.csv"
 
     elif target == 'users':
         writer.writerow(['ID', 'اسم العميل', 'رقم الهاتف', 'تاريخ التسجيل'])
         for r in db.fetchall("SELECT id, full_name, phone, created_at FROM users ORDER BY id DESC"):
-            writer.writerow([r['id'], r['full_name'], r['phone'], r['created_at']])
+            writer.writerow([r['id'], r['full_name'], f"\t{r['phone']}", f"\t{r['created_at']}"])
         filename = f"amlak_clients_{datetime.now().strftime('%Y%m%d')}.csv"
     else:
         db.close()
